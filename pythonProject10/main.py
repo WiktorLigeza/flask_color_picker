@@ -1,11 +1,9 @@
 from flask import Flask, render_template, request
-from flask_colorpicker import colorpicker
-from flask_bootstrap import Bootstrap
+
 
 
 app = Flask(__name__)
-Bootstrap(app)
-colorpicker(app)
+
 
 @app.route('/')
 def index():
@@ -27,15 +25,3 @@ def test():
 
 if __name__ == '__main__':
     app.run(debug=True)
-# import dash_core_components as dcc
-# import dash_html_components as html
-# import plotly.express as px
-# import pandas as pd
-#
-# @app.route('/chart')
-# def chart():
-#     df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/2014_apple_stock.csv')
-#
-#     fig = px.line(df, x='AAPL_x', y='AAPL_y', title='Apple Share Prices over time (2014)')
-#     fig.show()
-#     return  html.Div([dcc.Graph(figure=fig)])
