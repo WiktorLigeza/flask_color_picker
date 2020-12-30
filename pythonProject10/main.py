@@ -1,6 +1,6 @@
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
 from user_management import *
-from device_menagement import AddForm
+from device_menagement import DeviceForm, DeviceFormUpdate
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 import os
@@ -110,27 +110,46 @@ def login():
 @is_logged_in
 def dashboard():
     devicelist = Device.query.all()
-
     if len(devicelist) > 0:
         return render_template('dashboard.html', devicelist=devicelist)
-
     else:
         msg = "no devices"
         return render_template('dashboard.html', msg=msg)
 
 
-
-
-@app.route("/devices")
+@app.route("/edit_device/<string:id>", methods=['GET', 'POST'])
 @is_logged_in
-def devices():
-    return render_template('devices.html')
+def edit_device(id):
+    device = Device.query.get(id)
+    form = DeviceFormUpdate(request.form)
+    form.name.data = device.name
+    form.tag.data = device.tag
+
+    if request.method == 'POST' and form.validate():
+        device.name = request.form['name']
+        device.tag = request.form['tag']
+        db.session.commit()
+        flash('Device successfully updated', 'success')
+
+        return redirect(url_for('dashboard'))
+    return render_template('edit_device.html', form=form)
+
+
+@app.route("/delete_device/<string:id>", methods=['POST'])
+@is_logged_in
+def delete_device(id):
+    device = Device.query.get(id)
+    db.session.delete(device)
+    db.session.commit()
+
+    flash('Device successfully deleted', 'success')
+    return redirect(url_for('dashboard'))
 
 
 @app.route("/add_device", methods=['GET', 'POST'])
 @is_logged_in
 def add_device():
-    form = AddForm(request.form)
+    form = DeviceForm(request.form)
     if request.method == 'POST' and form.validate():
         name = form.name.data
         tag = form.tag.data

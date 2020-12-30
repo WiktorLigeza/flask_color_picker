@@ -3,7 +3,7 @@ from wtforms import Form, StringField,PasswordField, validators
 
 
 # Register Form Class
-class AddForm(Form):
+class DeviceForm(Form):
     name = StringField('Name', [validators.Length(min=1, max=50)])
     tag = StringField('Tag', [validators.Length(min=4, max=8)])
     connection_key = PasswordField('connection key', [
@@ -11,6 +11,11 @@ class AddForm(Form):
         validators.EqualTo('confirm', message='connection key do not match')
     ])
     confirm = PasswordField('Confirm connection key')
+
+
+class DeviceFormUpdate(Form):
+    name = StringField('Name', [validators.Length(min=1, max=50)])
+    tag = StringField('Tag', [validators.Length(min=4, max=8)])
 
 
 # def add_device(form, db, request):

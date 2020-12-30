@@ -3,7 +3,7 @@
 <h1>Dashboard <small> Welcome {{session.username}}</small></h1>
 <div>
   <hr>
-  <h3>Devices <a class="btn btn-success pull-right" href="/add_device"> add_device</a></h3>
+  <h3>Devices <a class="btn btn-success pull-right" href="/add_device"> Add device</a></h3>
   <table class="table table-striped">
     <tr>
       <th>ID</th>
@@ -20,7 +20,12 @@
         <td>{{device.tag}}</td>
         <td>{{device.registration_date}}</td>
         <td><a href="edit_device/{{device.id}}" class="btn btn-default pull-right">Edit</a></td>
-        <td><a href="edit_device/{{device.id}}" class="btn btn-danger pull-left">Delete</a></td>
+        <td>
+          <form action="{{url_for('delete_device', id=device.id)}}" method="post">
+            <input type="hidden" name="_method" value="DELETE">
+            <input type="submit" value="Delete" class="btn btn-danger">
+          </form>
+        </td>
       </tr>
     {% endfor %}
   </table>
@@ -29,13 +34,13 @@
 
 <div>
     <hr>
-  <h3>Moods <a class="btn btn-success pull-right" href="/add_mood"> add_mood</a></h3>
+  <h3>Moods <a class="btn btn-success pull-right" href="/add_mood"> Add mood</a></h3>
   <table class="table table-striped">
     <tr>
       <th>ID</th>
       <th>Name</th>
-      <th>Tag</th>
-      <th>Registration Date</th>
+      <th>Description</th>
+      <th>  </th>
       <th></th>
       <th></th>
     </tr>
@@ -46,7 +51,12 @@
         <td>{{device.tag}}</td>
         <td>{{device.registration_date}}</td>
         <td><a href="edit_device/{{device.id}}" class="btn btn-default pull-right">Edit</a></td>
-        <td><a href="edit_device/{{device.id}}" class="btn btn-danger pull-left">Delete</a></td>
+        <td>
+          <form action="{{url_for('delete_device', id=device.id)}}" method="post">
+            <input type="hidden" name="_method" value="DELETE">
+            <input type="submit" value="Delete" class="btn btn-danger">
+          </form>
+        </td>
       </tr>
     {% endfor %}
   </table>
