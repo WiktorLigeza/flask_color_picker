@@ -3,9 +3,6 @@ from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from main import User,render_template, request, redirect, flash, url_for
 
 
-
-
-
 # Register Form Class
 class RegisterForm(Form):
     name = StringField('Name', [validators.Length(min=1, max=50)])
@@ -16,6 +13,7 @@ class RegisterForm(Form):
         validators.EqualTo('confirm', message='Passwords do not match')
     ])
     confirm = PasswordField('Confirm Password')
+
 
 def user_registration(form, db):
     if request.method == 'POST' and form.validate():
@@ -30,8 +28,9 @@ def user_registration(form, db):
         db.session.commit()
         flash('You are now registered and can log in', 'success')
 
-        return redirect(url_for('log_in'))
+        return redirect(url_for('login'))
     return render_template('register.html', form=form)
+
 
 def user_log_in(session):
     if request.method == 'POST':
@@ -58,6 +57,7 @@ def user_log_in(session):
             return render_template('login.html', error=error)
 
     return render_template('login.html')
+
 
 def user_log_out(session):
     session.clear()

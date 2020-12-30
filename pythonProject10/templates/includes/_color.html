@@ -1,51 +1,50 @@
 <!doctype html>
 <html>
 <head>
-<title>HTML5 Input Color Picker</title>
-<style>
-	body, html{
-		padding:0;
-		margin:0;
-		height:100%;
-		width:100%;
-	}
-	body{
-		background-image:url("RGB_LED.png");
-		background-position:center center;
-		background-repeat:no-repeat;
-		font-family: Andale Mono;
-	}
-	#colorControls{
-		height:70px;
-		width:100%;
-		padding:20px;
-	}
-</style>
-<script>
-var colorChange;
-var initialColor = "#911abc";
+    <title>HTML5 Input Color Picker</title>
+    <style>
+        body, html{
+            padding:0;
+            margin:0;
+            height:100%;
+            width:100%;
+        }
+        body{
+            background-image:url("../../static/RGB_LED.png");
+            background-position:center center;
+            background-repeat:no-repeat;
+        }
+        #colorControls{
+            height:70px;
+            width:100%;
+            padding:20px;
+        }
+    </style>
+    <script>
+        var colorChange;
+        var initialColor = "#911abc";
 
-window.addEventListener("load", changemycolor);
+        window.addEventListener("load", changemycolor);
 
-function changemycolor() {
-colorChange = document.querySelector("#colorChange");
-colorChange.value = initialColor;
-colorChange.addEventListener("input", update);
-}
+        function changemycolor() {
+        colorChange = document.querySelector("#colorChange");
+        colorChange.value = initialColor;
+        colorChange.addEventListener("input", update);
+        }
 
-function update(event) {
-document.body.style.backgroundColor = event.target.value;
-document.getElementById('HexValue').innerHTML = event.target.value;
-}
-</script>
+        function update(event) {
+        document.body.style.backgroundColor = event.target.value;
+        document.getElementById('HexValue').innerHTML = event.target.value;
+        }
+    </script>
 </head>
 
 <body>
-<div id="colorControls">
-<label for="colorChange">Pick Your Color</label>
-<input type="color" value="#911abc" id="colorChange">
-<p>Hex Value:<span id="HexValue">#911abc</span></p>
-</div>
+    <div id="colorControls">
+        <label for="colorChange">Pick Your Color</label>
+            <input type="color" value="#911abc" id="colorChange">
+        <p>Hex Value:<span id="HexValue">#911abc</span></p>
+    </div>
 </body>
 </html>
 
