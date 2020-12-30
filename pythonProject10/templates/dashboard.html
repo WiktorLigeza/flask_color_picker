@@ -1,8 +1,35 @@
 {% extends 'layout.html' %}
 {% block body %}
-  <h1>Dashboard <small> Welcome {{session.username}}</small></h1>
-  <a class="btn btn-success" href="/add_device"> add_device</a>
+<h1>Dashboard <small> Welcome {{session.username}}</small></h1>
+<div>
+  <hr>
+  <h3>Devices <a class="btn btn-success pull-right" href="/add_device"> add_device</a></h3>
+  <table class="table table-striped">
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Tag</th>
+      <th>Registration Date</th>
+      <th></th>
+      <th></th>
+    </tr>
+    {% for device in devicelist %}
+      <tr>
+        <td>{{device.id}} </td>
+        <td>{{device.name}}</td>
+        <td>{{device.tag}}</td>
+        <td>{{device.registration_date}}</td>
+        <td><a href="edit_device/{{device.id}}" class="btn btn-default pull-right">Edit</a></td>
+        <td><a href="edit_device/{{device.id}}" class="btn btn-danger pull-left">Delete</a></td>
+      </tr>
+    {% endfor %}
+  </table>
+  <hr>
+</div>
+
+<div>
     <hr>
+  <h3>Moods <a class="btn btn-success pull-right" href="/add_mood"> add_mood</a></h3>
   <table class="table table-striped">
     <tr>
       <th>ID</th>
@@ -23,4 +50,8 @@
       </tr>
     {% endfor %}
   </table>
+  <hr>
+</div>
+
+
 {% endblock %}

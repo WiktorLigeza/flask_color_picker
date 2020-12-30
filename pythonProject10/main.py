@@ -142,7 +142,7 @@ def add_device():
         db.session.commit()
         flash('New device successfully added', 'success')
 
-        return redirect(url_for('devices'))
+        return redirect(url_for('dashboard'))
     return render_template('add_device.html', form=form)
 
 

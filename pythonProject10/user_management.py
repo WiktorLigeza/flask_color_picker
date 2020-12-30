@@ -38,7 +38,7 @@ def user_log_in(session):
         username = request.form['username']
         password_candidate = request.form['password']
 
-        result = User.query.filter(User.email.endswith(username)).all()
+        result = User.query.filter(User.username.endswith(username)).all()
 
         if len(result) > 0:
             password = result[0].password
