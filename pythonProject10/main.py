@@ -146,6 +146,12 @@ def delete_device(id):
     return redirect(url_for('dashboard'))
 
 
+@app.route("/color")
+@is_logged_in
+def color():
+    return render_template('color.html')
+
+
 @app.route("/add_device", methods=['GET', 'POST'])
 @is_logged_in
 def add_device():

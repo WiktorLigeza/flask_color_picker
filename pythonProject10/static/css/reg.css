@@ -1,0 +1,21 @@
+.registration_block {
+background: #f8f8f8;
+margin: auto;
+width: 60%;
+height: 55%;
+}
+.registration_center{
+padding: 20px;
+}
+
+.submit_btn_custom{
+color: #f8f8f8; !important;
+background-color: #444; !important;
+border-color: #444;
+}
+
+.submit_btn_custom:hover{
+color: #f8f8f8; !important;
+background-color: firebrick; !important;
+border-color: firebrick;
+}
