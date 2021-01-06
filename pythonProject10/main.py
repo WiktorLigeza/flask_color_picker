@@ -6,9 +6,11 @@ from flask_marshmallow import Marshmallow
 import os
 from functools import wraps
 from datetime import datetime
-
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 
 ################################################ INIT
+secret_key = 'jpgmd'
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 # Database
@@ -20,6 +22,11 @@ db = SQLAlchemy(app)
 # Init ma
 ma = Marshmallow(app)
 
+app.config.from_pyfile('config.cfg')
+
+mail = Mail(app)
+
+s = URLSafeTimedSerializer(secret_key)
 
 ################################################ USER DB HANDLING
 # User Class/Model
@@ -177,6 +184,34 @@ def logout():
     return user_log_out(session=session)
 
 
+@app.route('/trial', methods=['GET', 'POST'])
+def trial():
+    if request.method == 'GET':
+        return '<form action="/trial" method="POST"><input name="email"><input type="submit"></form>'
+
+    email = request.form['email']
+    token = s.dumps(email, salt='email-confirm')
+
+    msg = Message('Confirm Email', sender='hal.home.and.led@gmail.com', recipients=[email])
+
+    link = url_for('confirm_email', token=token, _external=True)
+
+    msg.body = 'Your link is {}'.format(link)
+
+    mail.send(msg)
+
+    return '<h1>The email you entered is {}. The token is {}</h1>'.format(email, token)
+
+
+@app.route('/confirm_email/<token>')
+def confirm_email(token):
+    try:
+        email = s.loads(token, salt='email-confirm', max_age=3600)
+    except SignatureExpired:
+        return '<h1>The token is expired!</h1>'
+    return '<h1>The token works!</h1>'
+
+
 if __name__ == '__main__':
-    app.secret_key = 'jpgmd'
+    app.secret_key = secret_key
     app.run(debug=True)

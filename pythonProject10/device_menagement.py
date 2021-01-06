@@ -1,7 +1,6 @@
 from passlib.hash import sha256_crypt
 from wtforms import Form, StringField,PasswordField, validators
 
-
 # Register Form Class
 class DeviceForm(Form):
     name = StringField('Name', [validators.Length(min=1, max=50)])
