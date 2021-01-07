@@ -8,6 +8,9 @@ from functools import wraps
 from datetime import datetime
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
+from flask_script import Manager
+from flask_migrate import Migrate, MigrateCommand
+
 
 ################################################ INIT
 secret_key = 'jpgmd'
@@ -19,9 +22,13 @@ app.config['SQLALCHEMY_BINDS'] = {'two' : 'sqlite:///' + os.path.join(basedir, '
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Init db
 db = SQLAlchemy(app)
+# Init migrate
+manager = Manager(app)
+migrate = Migrate(app, db)
+manager.add_command('db', MigrateCommand)
+
 # Init ma
 ma = Marshmallow(app)
-
 app.config.from_pyfile('config.cfg')
 
 mail = Mail(app)
@@ -36,19 +43,21 @@ class User(db.Model):
     email = db.Column(db.String(100), unique=True)
     username = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(25))
+    isActive = db.Column(db.BOOLEAN)
 
 
-    def __init__(self, name, email, username, password):
+    def __init__(self, name, email, username, password, isActive):
         self.name = name
         self.email = email
         self.username = username
         self.password = password
+        self.isActive = isActive
 
 
 # User Schema
 class UserSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'name', 'email', 'username', 'password')
+        fields = ('id', 'name', 'email', 'username', 'password', 'isActive')
 
 
 # Init schema
@@ -105,7 +114,7 @@ def index():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm(request.form)
-    return user_registration(form = form, db = db)
+    return user_registration(s=s, mail=mail, form=form, db=db)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -184,32 +193,20 @@ def logout():
     return user_log_out(session=session)
 
 
-@app.route('/trial', methods=['GET', 'POST'])
-def trial():
-    if request.method == 'GET':
-        return '<form action="/trial" method="POST"><input name="email"><input type="submit"></form>'
-
-    email = request.form['email']
-    token = s.dumps(email, salt='email-confirm')
-
-    msg = Message('Confirm Email', sender='hal.home.and.led@gmail.com', recipients=[email])
-
-    link = url_for('confirm_email', token=token, _external=True)
-
-    msg.body = 'Your link is {}'.format(link)
-
-    mail.send(msg)
-
-    return '<h1>The email you entered is {}. The token is {}</h1>'.format(email, token)
-
-
 @app.route('/confirm_email/<token>')
 def confirm_email(token):
     try:
-        email = s.loads(token, salt='email-confirm', max_age=3600)
+        email = s.loads(token, salt='email-confirm', max_age=172800) #172800
+
     except SignatureExpired:
-        return '<h1>The token is expired!</h1>'
-    return '<h1>The token works!</h1>'
+        flash('The token is expired!', 'danger')
+        return redirect(url_for('login'))
+
+    result = User.query.filter(User.email.endswith(email)).all()
+    result[0].isActive = True
+    db.session.commit()
+    flash('Your email is confirmed you can now logg in', 'success')
+    return redirect(url_for('login'))
 
 
 if __name__ == '__main__':
