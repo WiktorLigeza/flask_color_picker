@@ -1,8 +1,9 @@
 from passlib.hash import sha256_crypt
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
-from main import User,render_template, request, redirect, flash, url_for
+from main import User, render_template, request, redirect, flash, url_for
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
+
 
 # Register Form Class
 class RegisterForm(Form):
@@ -25,8 +26,8 @@ def user_registration(s, mail, form, db):
 
         new_user = User(name, email, username, password, isActive=False)
 
-        #sending email
-        email = request.form['email']
+        # sending email
+        email = form.email.data
         token = s.dumps(email, salt='email-confirm')
 
         msg = Message('Confirm Email', sender='hal.home.and.led@gmail.com', recipients=[email])
@@ -34,14 +35,18 @@ def user_registration(s, mail, form, db):
         link = url_for('confirm_email', token=token, _external=True)
 
         msg.body = 'This link is active for 48 hours: {} '.format(link)
+        try:
+            mail.send(msg)
+            db.session.add(new_user)
+            db.session.commit()
+            flash('Please confirm your email - the link will be active for 48 hours', 'info')
+            return redirect(url_for('login'))
 
-        mail.send(msg)
+        except:
+            pass
 
-        db.session.add(new_user)
-        db.session.commit()
-        flash('Please confirm your email - the link will be active for 48 hours', 'info')
-
-        return redirect(url_for('login'))
+        flash('wrong email', 'danger')
+        render_template('register.html', form=form)
     return render_template('register.html', form=form)
 
 
@@ -71,7 +76,6 @@ def user_log_in(session):
         else:
             error = 'Username not found'
             return render_template('login.html', error=error)
-
 
     return render_template('login.html')
 
