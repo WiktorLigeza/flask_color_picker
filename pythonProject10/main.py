@@ -196,11 +196,13 @@ def logout():
 @app.route('/confirm_email/<token>')
 def confirm_email(token):
     try:
-        email = s.loads(token, salt='email-confirm', max_age=172800) #172800
-
+        email = s.loads(token, salt='email-confirm', max_age=72800)
     except SignatureExpired:
-        flash('The token is expired!', 'danger')
-        return redirect(url_for('login'))
+        to_die = User.query.filter(User.email.endswith(s.loads(token, salt='email-confirm'))).all()
+        db.session.delete(to_die[0])
+        db.session.commit()
+        flash('The token is expired! Pleas register again', 'danger')
+        return redirect(url_for('register'))
 
     result = User.query.filter(User.email.endswith(email)).all()
     result[0].isActive = True
