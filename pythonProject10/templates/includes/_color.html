@@ -4,6 +4,7 @@
     <title>HTML5 Input Color Picker</title>
     <style>
         body, html{
+            background:#911abc ;
             padding:0;
             margin:0;
             height:100%;
@@ -40,10 +41,15 @@
 </head>
 
 <body>
+
     <div id="colorControls">
         <label for="colorChange">Pick Your Color</label>
-            <input type="color" value="#911abc" id="colorChange">
-        <p>Hex Value:<span id="HexValue">#911abc</span></p>
+        <form method="POST">
+            <input name="colorChange" type="color" value="#911abc" id="colorChange">
+            <p style="margin-bottom: 0px" ><input type="submit" class="btn submit_btn_custom" value="Submit"></p>
+        </form>
+        <p style="margin-left: 500px">Hex Value:<span id="HexValue">#911abc</span></p>
+
     </div>
 </body>
 </html>

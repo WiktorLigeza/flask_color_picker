@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Heatmap</title>
+</head>
+<body>
+    <label for="x-cor">Move mouse </label>
+    <form class="form" method="post">
+
+            <input name="x-cor"  id="x-cor">
+            <input name="y-cor"  id="y-cor">
+            <input name="x-arr"  id="x-arr">
+            <input name="y-arr"  id="y-arr">
+
+
+            <p onclick="start()"><input type="submit" class="btn submit_btn_custom" value="Start"></p>
+            <p onclick="end()" ><input type="submit" class="btn submit_btn_custom" value="End"></p>
+
+    </form>
+
+    <script >
+        var xX;
+        var yY;
+        var arrx = [];
+        var arry = [];
+
+
+        xX = document.querySelector("#x-cor");
+        yY = document.querySelector("#y-cor");
+
+        x_arr = document.querySelector("#x-arr");
+        y_arr = document.querySelector("#y-arr");
+
+
+        var cursor_x = -1;
+        var cursor_y = -1;
+        document.onmousemove = function(event)
+        {
+            cursor_x = event.pageX;
+            cursor_y = event.pageY;
+        }
+        setInterval(check_cursor, 10);
+        function check_cursor(){
+
+            xX.value = cursor_x;
+            yY.value = cursor_y;
+            arrx.push(cursor_x)
+            arry.push(cursor_y)
+
+
+        }
+
+        function start()
+        {
+            arrx = [];
+            arry = [];
+        }
+
+        function end()
+        {
+            x_arr.value = arrx;
+            y_arr.value = arry;
+        }
+
+    </script >
+
+</body>
+</html>

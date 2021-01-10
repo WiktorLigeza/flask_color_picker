@@ -10,8 +10,10 @@ from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
-
-
+import numpy as np
+import plotly.express as px
+import dash_html_components as html
+import dash_core_components as dcc
 ################################################ INIT
 secret_key = 'jpgmd'
 app = Flask(__name__)
@@ -162,9 +164,10 @@ def delete_device(id):
     return redirect(url_for('dashboard'))
 
 
-@app.route("/color")
-@is_logged_in
+@app.route('/color', methods=['GET', 'POST'])
 def color():
+    if request.method == "POST":
+        print(request.form.get('colorChange'))
     return render_template('color.html')
 
 
@@ -210,6 +213,37 @@ def confirm_email(token):
     flash('Your email is confirmed you can now logg in', 'success')
     return redirect(url_for('login'))
 
+
+arr_x = []
+arr_y = []
+@app.route("/heatmap", methods=['GET', 'POST'])
+def heatmap():
+    global arr_x,arr_y
+    if request.method == "POST":
+        x = request.form["x-arr"]
+        y = request.form["y-arr"]
+
+
+        try:
+            arr_x = [int(i) for i in x.split(',')]
+            arr_y = [int(i) for i in y.split(',')]
+
+            print('X length: ', len(arr_x))
+            print('Y length: ', len(arr_y))
+            print('shape:', len(arr_y))
+            return redirect(url_for('chart'))
+
+
+
+        except: print("start")
+
+    return render_template('heatmap.html')
+
+
+@app.route('/chart')
+def chart():
+    fig = px.line(x=arr_x, y=arr_y)
+    return html.Div([dcc.Graph(figure=fig)])
 
 if __name__ == '__main__':
     app.secret_key = secret_key
