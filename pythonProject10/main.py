@@ -1,26 +1,31 @@
+import asyncio
+
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
 from user_management import *
-from device_menagement import DeviceForm, DeviceFormUpdate
+from device_menagement import DeviceForm, DeviceFormUpdate, ResetConnectionKey
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 import os
+import subprocess
 from functools import wraps
 from datetime import datetime
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
-import numpy as np
 import plotly.express as px
 import dash_html_components as html
 import dash_core_components as dcc
+import socket_manager as sm
+
 ################################################ INIT
+connected = set()
 secret_key = 'jpgmd'
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 # Database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'user.sqlite')
-app.config['SQLALCHEMY_BINDS'] = {'two' : 'sqlite:///' + os.path.join(basedir, 'device.sqlite')}
+app.config['SQLALCHEMY_BINDS'] = {'two': 'sqlite:///' + os.path.join(basedir, 'device.sqlite')}
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Init db
 db = SQLAlchemy(app)
@@ -29,6 +34,7 @@ manager = Manager(app)
 migrate = Migrate(app, db)
 manager.add_command('db', MigrateCommand)
 
+
 # Init ma
 ma = Marshmallow(app)
 app.config.from_pyfile('config.cfg')
@@ -36,6 +42,7 @@ app.config.from_pyfile('config.cfg')
 mail = Mail(app)
 
 s = URLSafeTimedSerializer(secret_key)
+
 
 ################################################ USER DB HANDLING
 # User Class/Model
@@ -76,7 +83,6 @@ class Device(db.Model):
     tag = db.Column(db.String(100), unique=True)
     connection_key = db.Column(db.String(25))
     registration_date = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
-
 
     def __init__(self, name, tag, connection_key):
         self.name = name
@@ -142,15 +148,34 @@ def edit_device(id):
     form = DeviceFormUpdate(request.form)
     form.name.data = device.name
     form.tag.data = device.tag
+    device_id = id
 
     if request.method == 'POST' and form.validate():
         device.name = request.form['name']
         device.tag = request.form['tag']
         db.session.commit()
         flash('Device successfully updated', 'success')
+        asyncio.get_event_loop().run_until_complete(sm.update_tag(device.tag))
+
 
         return redirect(url_for('dashboard'))
-    return render_template('edit_device.html', form=form)
+    return render_template('edit_device.html', form=form, device_id=device_id)
+
+
+@app.route("/edit_device/edit_connection_key/<string:id>", methods=['GET', 'POST'])
+@is_logged_in
+def edit_connection_key(id):
+    device = Device.query.get(id)
+    print(id)
+    form = ResetConnectionKey(request.form)
+
+    if request.method == 'POST' and form.validate():
+        device.connection_key = sha256_crypt.encrypt(str(form.connection_key.data))
+        db.session.commit()
+        flash('Device successfully updated', 'success')
+
+        return redirect(url_for('dashboard'))
+    return render_template('edit_connection_key.html', form=form)
 
 
 @app.route("/delete_device/<string:id>", methods=['POST'])
@@ -167,8 +192,13 @@ def delete_device(id):
 @app.route('/color', methods=['GET', 'POST'])
 def color():
     if request.method == "POST":
-        print(request.form.get('colorChange'))
-    return render_template('color.html')
+        backend_value = request.form.get('colorChange')
+        data = {'hexa': backend_value}
+        print("color: ", backend_value)
+        return render_template('color.html', data=data)
+
+    data = {'hexa': "#911abc" }
+    return render_template('color.html', data=data)
 
 
 @app.route("/add_device", methods=['GET', 'POST'])
@@ -245,6 +275,8 @@ def chart():
     fig = px.line(x=arr_x, y=arr_y)
     return html.Div([dcc.Graph(figure=fig)])
 
+
 if __name__ == '__main__':
+    #socketio.run(app)
     app.secret_key = secret_key
     app.run(debug=True)

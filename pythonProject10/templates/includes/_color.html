@@ -21,9 +21,17 @@
             padding:20px;
         }
     </style>
+
     <script>
         var colorChange;
-        var initialColor = "#911abc";
+        var color = JSON.parse('{{ data | tojson | safe}}');
+        var initialColor = color.hexa;
+
+        window.onload = function(){
+            document.body.style.backgroundColor = initialColor;
+            document.getElementById('HexValue').innerHTML = initialColor;
+        };
+
 
         window.addEventListener("load", changemycolor);
 
@@ -37,7 +45,35 @@
         document.body.style.backgroundColor = event.target.value;
         document.getElementById('HexValue').innerHTML = event.target.value;
         }
+
     </script>
+    <script>
+    // Create WebSocket connection.
+    const socket = new WebSocket('wss://hal9000-color-picker-websockserver.glitch.me');
+
+    // Connection opened
+    socket.addEventListener('open', function (event) {
+        console.log('Connected to the WS Server!')
+    });
+
+    // Connection closed
+    socket.addEventListener('close', function (event) {
+        console.log('Disconnected from the WS Server!')
+    });
+
+    // Listen for messages
+    socket.addEventListener('message', function (event) {
+        console.log('Message from server ', event.data);
+    });
+
+    // Send a msg to the websocket
+    const sendMsg = () => {
+        const data_to_send = { user: "John", device_tag: "2137", color: colorChange.value };
+        const data_in_json = JSON.stringify(data_to_send);
+        console.log(data_in_json)
+        socket.send(data_in_json);
+    }
+</script>
 </head>
 
 <body>
@@ -45,12 +81,15 @@
     <div id="colorControls">
         <label for="colorChange">Pick Your Color</label>
         <form method="POST">
-            <input name="colorChange" type="color" value="#911abc" id="colorChange">
-            <p style="margin-bottom: 0px" ><input type="submit" class="btn submit_btn_custom" value="Submit"></p>
+            <input name="colorChange" type="color" value=colorChange.value id="colorChange">
+            <p style="margin-bottom: 0px" ><input type="submit" onclick="sendMsg()" class="btn submit_btn_custom" value="Submit"></p>
+
         </form>
-        <p style="margin-left: 500px">Hex Value:<span id="HexValue">#911abc</span></p>
+
+        <p style="margin-left: 500px">Hex Value:<span id="HexValue" >to set</span></p>
 
     </div>
+
 </body>
 </html>
 

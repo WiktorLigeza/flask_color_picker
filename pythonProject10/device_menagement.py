@@ -1,6 +1,7 @@
 from passlib.hash import sha256_crypt
 from wtforms import Form, StringField,PasswordField, validators
 
+
 # Register Form Class
 class DeviceForm(Form):
     name = StringField('Name', [validators.Length(min=1, max=50)])
@@ -15,6 +16,15 @@ class DeviceForm(Form):
 class DeviceFormUpdate(Form):
     name = StringField('Name', [validators.Length(min=1, max=50)])
     tag = StringField('Tag', [validators.Length(min=4, max=8)])
+    id = StringField('Id')
+
+
+class ResetConnectionKey(Form):
+    connection_key = PasswordField('connection key', [
+        validators.DataRequired(),
+        validators.EqualTo('confirm', message='connection key do not match')
+    ])
+    confirm = PasswordField('Confirm connection key')
 
 
 # def add_device(form, db, request):

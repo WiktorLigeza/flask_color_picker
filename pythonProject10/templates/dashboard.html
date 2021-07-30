@@ -42,9 +42,11 @@
       <th>Tag</th>
       <th>Registration Date</th>
       <th style="text-align: center">Connected</th>
+
       <th></th>
       <th></th>
       <th></th>
+
     </tr>
     {% for device in devicelist %}
       <tr>
@@ -52,7 +54,7 @@
         <td>{{device.name}}</td>
         <td>{{device.tag}}</td>
         <td>{{device.registration_date}}</td>
-        <td style="text-align: center">yes</td>
+        <td style="text-align: center">Yes</td>
         <td><a href="edit_device/{{device.id}}" class="btn submit_btn_custom pull-right">Connect</a></td>
         <td class="text-center"><a href="edit_device/{{device.id}}" class="btn btn-default ">Edit</a></td>
         <td>

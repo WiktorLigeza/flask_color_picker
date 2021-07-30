@@ -35,6 +35,7 @@ def user_registration(s, mail, form, db):
         link = url_for('confirm_email', token=token, _external=True)
 
         msg.body = 'This link is active for 48 hours: {} '.format(link)
+
         try:
             mail.send(msg)
             db.session.add(new_user)
