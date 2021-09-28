@@ -25,6 +25,8 @@
         var colorChange;
         var color = JSON.parse('{{ data | tojson | safe}}');
         var initialColor = color.hexa;
+        var colorList = [];
+        var colorList_stringify;
 
         window.onload = function(){
             document.body.style.backgroundColor = initialColor;
@@ -72,6 +74,13 @@
         console.log(data_in_json)
         socket.send(data_in_json);
     }
+
+    function myFunction() {
+      colorList.push(colorChange.value);
+      colorList_stringify = colorList.toString();
+      document.getElementById("list").innerHTML = colorList_stringify;
+    }
+
 </script>
 </head>
 
@@ -79,15 +88,17 @@
     <div id="colorControls">
         <label for="colorChange">Hi {{session.username}}, Pick Your Color for: {{device.name}}</label>
         <form method="POST">
-            <input name="colorChange" type="color" value=colorChange.value id="colorChange">
+            <input name="colorChange" type="color" value=colorList_stringify.value id="colorChange">
             <p style="margin-bottom: 0px" ><input type="submit" onclick="sendMsg()" class="btn submit_btn_custom" value="Submit"></p>
 
         </form>
 
         <p style="margin-left: 500px">Hex Value:<span id="HexValue" >to set</span></p>
+        <p id="demo" onclick="myFunction()" type="submit">ADD</p>
+        <p id="list">empty</p>
 
     </div>
 
+
 </body>
 </html>
-

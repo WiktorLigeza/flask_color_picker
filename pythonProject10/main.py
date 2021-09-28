@@ -1,8 +1,7 @@
 import asyncio
 
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
-from user_management import *
-from device_menagement import DeviceForm, DeviceFormUpdate, ResetConnectionKey
+
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 import os
@@ -25,7 +24,8 @@ app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 # Database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'user.sqlite')
-app.config['SQLALCHEMY_BINDS'] = {'two': 'sqlite:///' + os.path.join(basedir, 'device.sqlite')}
+app.config['SQLALCHEMY_BINDS'] = {'two': 'sqlite:///' + os.path.join(basedir, 'device.sqlite'),
+                                  'three': 'sqlite:///' + os.path.join(basedir, 'mood.sqlite'),}
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Init db
 db = SQLAlchemy(app)
@@ -83,22 +83,52 @@ class Device(db.Model):
     tag = db.Column(db.String(100), unique=True)
     connection_key = db.Column(db.String(25))
     registration_date = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+    owner_id = db.Column(db.Integer)
 
-    def __init__(self, name, tag, connection_key):
+    def __init__(self, name, tag, connection_key, owner_id):
         self.name = name
         self.tag = tag
         self.connection_key = connection_key
+        self.owner_id = owner_id
 
 
 # Device Schema
 class DeviceSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'name', 'tag', 'connection_key', 'registration_date')
+        fields = ('id', 'name', 'tag', 'connection_key', 'registration_date', 'owners_id')
 
 
 # Init schema
 device_schema = DeviceSchema()
 devices_schema = DeviceSchema(many=True)
+
+
+class Mood(db.Model):
+    __bind_key__ = 'three'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50))
+    payload = db.Column(db.String(10000))
+    owner_id = db.Column(db.Integer)
+
+    def __init__(self, name, payload, owner_id):
+        self.name = name
+        self.payload = payload
+        self.owner_id = owner_id
+
+
+# Device Schema
+class MoodSchema(ma.Schema):
+    class Meta:
+        fields = ('id', 'name', 'payload', 'owner_id')
+
+
+# Init schema
+mood_schema = MoodSchema()
+moods_schema = MoodSchema(many=True)
+
+from user_management import *
+from device_menagement import DeviceForm, DeviceFormUpdate, ResetConnectionKey
+
 
 
 ################################################ ROUTES
@@ -148,6 +178,7 @@ def edit_device(id):
     form = DeviceFormUpdate(request.form)
     form.name.data = device.name
     form.tag.data = device.tag
+    old_tag = device.tag
     device_id = id
 
     if request.method == 'POST' and form.validate():
@@ -155,8 +186,8 @@ def edit_device(id):
         device.tag = request.form['tag']
         db.session.commit()
         flash('Device successfully updated', 'success')
-        asyncio.get_event_loop().run_until_complete(sm.update_tag(device.tag))
-
+        loop = asyncio.new_event_loop().run_until_complete(sm.update_tag(device.tag, device.name, old_tag))
+        asyncio.set_event_loop(loop)
 
         return redirect(url_for('dashboard'))
     return render_template('edit_device.html', form=form, device_id=device_id)
@@ -189,28 +220,33 @@ def delete_device(id):
     return redirect(url_for('dashboard'))
 
 
-@app.route('/color', methods=['GET', 'POST'])
-def color():
+@app.route('/color/<string:id>', methods=['GET', 'POST'])
+def color(id):
+    device = Device.query.get(id)
+    print(device.tag)
     if request.method == "POST":
         backend_value = request.form.get('colorChange')
         data = {'hexa': backend_value}
         print("color: ", backend_value)
-        return render_template('color.html', data=data)
+        return render_template('color.html', data=data, device=device)
 
     data = {'hexa': "#911abc" }
-    return render_template('color.html', data=data)
+    return render_template('color.html', data=data, device=device)
 
 
 @app.route("/add_device", methods=['GET', 'POST'])
 @is_logged_in
 def add_device():
+    user_name = session['username']
+    owner = User.query.filter_by(username=user_name).first()
+    print(owner.id)
     form = DeviceForm(request.form)
     if request.method == 'POST' and form.validate():
         name = form.name.data
         tag = form.tag.data
         connection_key = sha256_crypt.encrypt(str(form.connection_key.data))
 
-        new_device = Device(name, tag, connection_key)
+        new_device = Device(name, tag, connection_key, owner.id)
 
         db.session.add(new_device)
         db.session.commit()
@@ -224,6 +260,21 @@ def add_device():
 @is_logged_in
 def logout():
     return user_log_out(session=session)
+
+
+@app.route('/add_mood', methods=['GET', 'POST'])
+@is_logged_in
+def add_mood():
+    id = 1
+    device = Device.query.get(id)
+    print(device.tag)
+    if request.method == "POST":
+        backend_value = request.form.get('colorChange')
+        data = {'hexa': backend_value}
+        print("color: ", backend_value)
+        return render_template('mood_creator.html', data=data, device=device)
+    data = {'hexa': "#911abc"}
+    return render_template('mood_creator.html', data=data, device=device)
 
 
 @app.route('/confirm_email/<token>')

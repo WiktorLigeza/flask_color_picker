@@ -18,7 +18,6 @@
         <td>{{device.id}}</td>
         <td>{{device.name}}</td>
         <td>{{device.tag}}</td>
-        <td>{{device.registration_date}}</td>
         <td><a href="edit_device/{{device.id}}" class="btn btn-default pull-right">Edit</a></td>
         <td>
           <form action="{{url_for('delete_device', id=device.id)}}" method="post">
@@ -46,6 +45,7 @@
       <th></th>
       <th></th>
       <th></th>
+      <th></th>
 
     </tr>
     {% for device in devicelist %}
@@ -55,6 +55,7 @@
         <td>{{device.tag}}</td>
         <td>{{device.registration_date}}</td>
         <td style="text-align: center">Yes</td>
+        <td><a href="color/{{device.id}}" class="btn btn-info pull-right">Color</a></td>
         <td><a href="edit_device/{{device.id}}" class="btn submit_btn_custom pull-right">Connect</a></td>
         <td class="text-center"><a href="edit_device/{{device.id}}" class="btn btn-default ">Edit</a></td>
         <td>
