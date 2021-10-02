@@ -1,7 +1,7 @@
 import asyncio
 
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
-
+import json
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 import os
@@ -127,7 +127,8 @@ mood_schema = MoodSchema()
 moods_schema = MoodSchema(many=True)
 
 from user_management import *
-from device_menagement import DeviceForm, DeviceFormUpdate, ResetConnectionKey
+from device_menagement import *
+from mood_management import *
 
 
 
@@ -265,16 +266,36 @@ def logout():
 @app.route('/add_mood', methods=['GET', 'POST'])
 @is_logged_in
 def add_mood():
-    id = 1
-    device = Device.query.get(id)
-    print(device.tag)
+    user_name = session['username']
+    owner = User.query.filter_by(username=user_name).first()
     if request.method == "POST":
-        backend_value = request.form.get('colorChange')
-        data = {'hexa': backend_value}
-        print("color: ", backend_value)
-        return render_template('mood_creator.html', data=data, device=device)
+        data = {'hexa': request.form.get('colorChange')}
+        if len(request.form.get('name')) != 0:
+            name = request.form.get('name')
+            color_list = request.form.get('colorList')
+            brightness = request.form.get('brightness')
+            speed = request.form.get('speed')
+            payload = {"color_list": color_list, "brightness": brightness, "speed": speed}
+
+            print("name: ", owner.id)
+            print("name: ", name)
+            print("speed: ", speed)
+            print("brightness: ", brightness)
+            print("color list: ", color_list)
+            print("payload: ", payload)
+
+            new_mood = Mood(name, json.dumps(payload), owner.id)
+            db.session.add(new_mood)
+            db.session.commit()
+
+            flash('New mood successfully added', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Provide mood name', 'success')
+            return render_template('mood_creator.html', data=data)
+
     data = {'hexa': "#911abc"}
-    return render_template('mood_creator.html', data=data, device=device)
+    return render_template('mood_creator.html', data=data)
 
 
 @app.route('/confirm_email/<token>')
@@ -295,39 +316,39 @@ def confirm_email(token):
     return redirect(url_for('login'))
 
 
-arr_x = []
-arr_y = []
-@app.route("/heatmap", methods=['GET', 'POST'])
-def heatmap():
-    global arr_x,arr_y
-    if request.method == "POST":
-        x = request.form["x-arr"]
-        y = request.form["y-arr"]
-
-
-        try:
-            arr_x = [int(i) for i in x.split(',')]
-            arr_y = [int(i) for i in y.split(',')]
-
-            print('X length: ', len(arr_x))
-            print('Y length: ', len(arr_y))
-            print('shape:', len(arr_y))
-            return redirect(url_for('chart'))
-
-
-
-        except: print("start")
-
-    return render_template('heatmap.html')
-
-
-@app.route('/chart')
-def chart():
-    fig = px.line(x=arr_x, y=arr_y)
-    return html.Div([dcc.Graph(figure=fig)])
-
 
 if __name__ == '__main__':
     #socketio.run(app)
     app.secret_key = secret_key
     app.run(debug=True)
+
+# arr_x = []
+# arr_y = []
+# @app.route("/heatmap", methods=['GET', 'POST'])
+# def heatmap():
+#     global arr_x,arr_y
+#     if request.method == "POST":
+#         x = request.form["x-arr"]
+#         y = request.form["y-arr"]
+#
+#
+#         try:
+#             arr_x = [int(i) for i in x.split(',')]
+#             arr_y = [int(i) for i in y.split(',')]
+#
+#             print('X length: ', len(arr_x))
+#             print('Y length: ', len(arr_y))
+#             print('shape:', len(arr_y))
+#             return redirect(url_for('chart'))
+#
+#
+#
+#         except: print("start")
+#
+#     return render_template('heatmap.html')
+
+# @app.route('/chart')
+# def chart():
+#     fig = px.line(x=arr_x, y=arr_y)
+#     return html.Div([dcc.Graph(figure=fig)])
+

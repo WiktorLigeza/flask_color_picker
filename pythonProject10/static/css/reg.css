@@ -19,3 +19,10 @@ color: #f8f8f8; !important;
 background-color: firebrick; !important;
 border-color: firebrick;
 }
+
+.mood_block{
+background: #f8f8f8;
+margin: auto;
+width: 60%;
+height: 55%;
+}

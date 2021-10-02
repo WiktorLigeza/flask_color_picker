@@ -10,23 +10,84 @@
             height:100%;
             width:100%;
         }
-        body{
-            background-image:url("../../static/RGB_LED.png");
-            background-position:center center;
-            background-repeat:no-repeat;
-        }
         #colorControls{
             height:70px;
             width:100%;
             padding:20px;
         }
     </style>
+
+
+</head>
+
+<body>
+    <div id="colorControls" style="background: rgba(0,0,0,0.3); margin: auto; width: 60%; height: 55%;">
+        <div >
+            <form method="POST">
+                <p style="margin-bottom: 0px; color: cornsilk; " id="name_label"> Name: </p>
+                <input style="margin-bottom: 5px;" name="name" class="form-control" id="name">
+
+                <p style="margin-bottom: 0px; color: cornsilk; " id="speed_label" > Change Speed: </p>
+                <input  style="margin-bottom: 5px;" type="range" min="1" max="100" value="50" class="slider" id="speed" oninput="speed_slider()" name="speed">
+
+                <input style="margin-bottom: 5px;" type="hidden" name="colorList" id="colorList">
+
+                <p style="margin-bottom: 0px; color: cornsilk; " id="brightness_label"> Brightness:</p>
+                <input style="margin-bottom: 5px;"  type="range" min="1" max="100" value="50" class="slider" id="brightness" oninput="brightness_slider()" name="brightness">
+
+                <input style="margin-bottom: 5px;" name="colorChange" type="color" value=colorChange.value id="colorChange">
+                <p style="margin-bottom: 5px; float: right;" ><input type="submit" class="btn submit_btn_custom" value="Submit"></p>
+        </form>
+
+        </div>
+
+
+        <p style="margin-bottom: 5px" ><input type="submit" onclick="myFunction()" class="btn submit_btn_custom" value="Add Color"></p>
+         <div id="dot_list" style="background: rgba(0,0,0,0.3); border-radius: 15px;">
+        </div>
+
+
+    </div>
     <script>
+        function stringInject(str, data) {
+           if (typeof str === 'string' && (data instanceof Array)) {
+
+        return str.replace(/({\d})/g, function(i) {
+            return data[i.replace(/{/, '').replace(/}/, '')];
+        });
+    } else if (typeof str === 'string' && (data instanceof Object)) {
+
+        if (Object.keys(data).length === 0) {
+            return str;
+        }
+
+        for (let key in data) {
+            return str.replace(/({([^}]+)})/g, function(i) {
+                let key = i.replace(/{/, '').replace(/}/, '');
+                if (!data[key]) {
+                    return i;
+                }
+
+                return data[key];
+            });
+        }
+    } else if (typeof str === 'string' && data instanceof Array === false || typeof str === 'string' && data instanceof Object === false) {
+
+            return str;
+    } else {
+
+        return false;
+    }
+        }
+
         var colorChange;
         var color = JSON.parse('{{ data | tojson | safe}}');
         var initialColor = color.hexa;
         var colorList = [];
         var colorList_stringify;
+        colorArr = document.querySelector("#colorList");
+        const element = document.getElementById("dot_list");
+
 
         window.onload = function(){
             document.body.style.backgroundColor = initialColor;
@@ -47,57 +108,31 @@
         document.getElementById('HexValue').innerHTML = event.target.value;
         }
 
+        function myFunction() {
+          colorList.push(colorChange.value);
+          colorList_stringify = colorList.toString();
+          console.log(colorList_stringify);
+          colorArr.value = colorList_stringify;
+          console.log(colorArr.value);
+          var color = colorChange.value;
+          var para = document.createElement("span");
+          para.style=stringInject("height: 25px; width: 25px; background-color: {color};" +
+              " border-radius: 50%; display: inline-block; margin: 5px; margin-bottom: 0px;", { color: color});
+          element.appendChild(para);
+         }
+
     </script>
     <script>
-    // Create WebSocket connection.
-    const socket = new WebSocket('wss://hal9000-color-picker-websockserver.glitch.me');
-
-    // Connection opened
-    socket.addEventListener('open', function (event) {
-        console.log('Connected to the WS Server!')
-    });
-
-    // Connection closed
-    socket.addEventListener('close', function (event) {
-        console.log('Disconnected from the WS Server!')
-    });
-
-    // Listen for messages
-    socket.addEventListener('message', function (event) {
-        console.log('Message from server ', event.data);
-    });
-
-    // Send a msg to the websocket
-    const sendMsg = () => {
-        const data_to_send = { user: '{{session.username}}', device_tag: '{{ device.tag }}', color: colorChange.value };
-        const data_in_json = JSON.stringify(data_to_send);
-        console.log(data_in_json)
-        socket.send(data_in_json);
-    }
-
-    function myFunction() {
-      colorList.push(colorChange.value);
-      colorList_stringify = colorList.toString();
-      document.getElementById("list").innerHTML = colorList_stringify;
-    }
-
-</script>
-</head>
-
-<body>
-    <div id="colorControls">
-        <label for="colorChange">Hi {{session.username}}, Pick Your Color for: {{device.name}}</label>
-        <form method="POST">
-            <input name="colorChange" type="color" value=colorList_stringify.value id="colorChange">
-            <p style="margin-bottom: 0px" ><input type="submit" onclick="sendMsg()" class="btn submit_btn_custom" value="Submit"></p>
-
-        </form>
-
-        <p style="margin-left: 500px">Hex Value:<span id="HexValue" >to set</span></p>
-        <p id="demo" onclick="myFunction()" type="submit">ADD</p>
-        <p id="list">empty</p>
-
-    </div>
+        window.onload = function() {speed_slider();brightness_slider() };
+        function speed_slider() {
+            const b = document.getElementById("speed").value;
+            document.getElementById("speed_label").innerHTML = "Change Speed: "+b;
+        }
+        function brightness_slider() {
+            const b = document.getElementById("brightness").value;
+            document.getElementById("brightness_label").innerHTML = "Brightness: "+b;
+        }
+    </script>
 
 
 </body>
