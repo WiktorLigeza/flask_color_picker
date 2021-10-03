@@ -14,11 +14,13 @@ background-color: #444; !important;
 border-color: #444;
 }
 
+
 .submit_btn_custom:hover{
 color: #f8f8f8; !important;
 background-color: firebrick; !important;
 border-color: firebrick;
 }
+
 
 .mood_block{
 background: #f8f8f8;

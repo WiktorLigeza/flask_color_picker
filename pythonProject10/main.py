@@ -164,9 +164,12 @@ def login():
 @app.route("/dashboard")
 @is_logged_in
 def dashboard():
-    devicelist = Device.query.all()
-    if len(devicelist) > 0:
-        return render_template('dashboard.html', devicelist=devicelist)
+    user_name = session['username']
+    owner = User.query.filter_by(username=user_name).first()
+    device_list = Device.query.filter_by(owner_id=owner.id).all()
+    mood_list = Mood.query.filter_by(owner_id=owner.id).all()
+    if len(device_list) > 0:
+        return render_template('dashboard.html', devicelist=device_list, moodList=mood_list)
     else:
         msg = "no devices"
         return render_template('dashboard.html', msg=msg)
@@ -223,8 +226,10 @@ def delete_device(id):
 
 @app.route('/color/<string:id>', methods=['GET', 'POST'])
 def color(id):
+    user_name = session['username']
+    owner = User.query.filter_by(username=user_name).first()
     device = Device.query.get(id)
-    print(device.tag)
+    mood_list = Mood.query.filter_by(owner_id=owner.id).all()
     if request.method == "POST":
         backend_value = request.form.get('colorChange')
         data = {'hexa': backend_value}
@@ -232,7 +237,7 @@ def color(id):
         return render_template('color.html', data=data, device=device)
 
     data = {'hexa': "#911abc" }
-    return render_template('color.html', data=data, device=device)
+    return render_template('color.html', data=data, device=device, moodList=mood_list)
 
 
 @app.route("/add_device", methods=['GET', 'POST'])
@@ -240,7 +245,6 @@ def color(id):
 def add_device():
     user_name = session['username']
     owner = User.query.filter_by(username=user_name).first()
-    print(owner.id)
     form = DeviceForm(request.form)
     if request.method == 'POST' and form.validate():
         name = form.name.data
@@ -270,19 +274,17 @@ def add_mood():
     owner = User.query.filter_by(username=user_name).first()
     if request.method == "POST":
         data = {'hexa': request.form.get('colorChange')}
-        if len(request.form.get('name')) != 0:
+        if len(request.form.get('name')) != 0 and len(request.form.get('colorList')) != 0:
             name = request.form.get('name')
             color_list = request.form.get('colorList')
             brightness = request.form.get('brightness')
             speed = request.form.get('speed')
-            payload = {"color_list": color_list, "brightness": brightness, "speed": speed}
+            loop = request.form.get('drone')
+            payload = {"color_list": color_list, "brightness": brightness, "speed": speed, "loop": loop}
 
-            print("name: ", owner.id)
             print("name: ", name)
-            print("speed: ", speed)
-            print("brightness: ", brightness)
-            print("color list: ", color_list)
             print("payload: ", payload)
+            print("owner id: ", owner.id)
 
             new_mood = Mood(name, json.dumps(payload), owner.id)
             db.session.add(new_mood)
@@ -314,7 +316,6 @@ def confirm_email(token):
     db.session.commit()
     flash('Your email is confirmed you can now logg in', 'success')
     return redirect(url_for('login'))
-
 
 
 if __name__ == '__main__':

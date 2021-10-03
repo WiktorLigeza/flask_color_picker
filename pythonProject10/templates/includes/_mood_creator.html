@@ -24,30 +24,60 @@
     <div id="colorControls" style="background: rgba(0,0,0,0.3); margin: auto; width: 60%; height: 55%;">
         <div >
             <form method="POST">
+                <!--  NAME INPUT  -->
                 <p style="margin-bottom: 0px; color: cornsilk; " id="name_label"> Name: </p>
                 <input style="margin-bottom: 5px;" name="name" class="form-control" id="name">
 
+                <!--  SPEED SLIDER  -->
                 <p style="margin-bottom: 0px; color: cornsilk; " id="speed_label" > Change Speed: </p>
                 <input  style="margin-bottom: 5px;" type="range" min="1" max="100" value="50" class="slider" id="speed" oninput="speed_slider()" name="speed">
 
-                <input style="margin-bottom: 5px;" type="hidden" name="colorList" id="colorList">
-
+                <!--  BRIGHTNESS SLIDER  -->
                 <p style="margin-bottom: 0px; color: cornsilk; " id="brightness_label"> Brightness:</p>
                 <input style="margin-bottom: 5px;"  type="range" min="1" max="100" value="50" class="slider" id="brightness" oninput="brightness_slider()" name="brightness">
 
+                <!--  RADIO BUTTONS  -->
+                <div style="background: rgba(0,0,0,0.3); border-radius: 15px; color:cornsilk" >
+                    <div style="margin: 5px">
+                        <div class="row">
+                            <div style="float: left; width: 33.33%;">
+                                <input style="margin-left: 50%" type="radio" id="loop" name="drone" value="loop" checked>
+                                <label for="loop">Loop</label>
+                            </div>
+                            <div style="float: left; width: 33.33%;">
+                                <input style="margin-left: 50%" type="radio" id="boomerang" name="drone" value="boomerang">
+                                <label for="boomerang">Boomerang</label>
+                            </div>
+                            <div style="float: left; width: 33.33%;">
+                                <input style="margin-left: 50%" type="radio" id="repeat" name="drone" value="repeat">
+                                <label for="repeat">Repeat</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!--  COLOR PICKER  -->
                 <input style="margin-bottom: 5px;" name="colorChange" type="color" value=colorChange.value id="colorChange">
+
+                <!--  SUBMIT BUTTON  -->
                 <p style="margin-bottom: 5px; float: right;" ><input type="submit" class="btn submit_btn_custom" value="Submit"></p>
-        </form>
 
+                <!--  HIDDEN COLOR LIST  -->
+                <input style="margin-bottom: 5px;" type="hidden" name="colorList" id="colorList">
+            </form>
         </div>
 
-
-        <p style="margin-bottom: 5px" ><input type="submit" onclick="myFunction()" class="btn submit_btn_custom" value="Add Color"></p>
-         <div id="dot_list" style="background: rgba(0,0,0,0.3); border-radius: 15px;">
-        </div>
-
-
+            <div style = "display: inline-block;">
+                <!--  ADD COLOR BUTTON  -->
+                <p style="margin-bottom: 5px; display: inline-block; " ><input style="background: rgba(0, 122, 0, 1)" type="submit" onclick="addColor()" class="btn submit_btn_custom" value="Add Color"></p>
+                <!--  REMOVE COLOR BUTTON  -->
+                <p style="margin-bottom: 5px; display: inline-block;" ><input style="background: rgba(122, 0, 0, 1)" type="submit" onclick="removeLast()" class="btn submit_btn_custom" value="Remove Last"></p>
+            </div>
+            <!--  DOTS DISPLAY DIV  -->
+            <div id="dot_list" style="background: rgba(0,0,0,0.3); border-radius: 15px;"></div>
     </div>
+
+
     <script>
         function stringInject(str, data) {
            if (typeof str === 'string' && (data instanceof Array)) {
@@ -87,6 +117,7 @@
         var colorList_stringify;
         colorArr = document.querySelector("#colorList");
         const element = document.getElementById("dot_list");
+        var colorChildList = [];
 
 
         window.onload = function(){
@@ -108,18 +139,27 @@
         document.getElementById('HexValue').innerHTML = event.target.value;
         }
 
-        function myFunction() {
+        function addColor() {
           colorList.push(colorChange.value);
           colorList_stringify = colorList.toString();
-          console.log(colorList_stringify);
           colorArr.value = colorList_stringify;
-          console.log(colorArr.value);
           var color = colorChange.value;
           var para = document.createElement("span");
           para.style=stringInject("height: 25px; width: 25px; background-color: {color};" +
               " border-radius: 50%; display: inline-block; margin: 5px; margin-bottom: 0px;", { color: color});
           element.appendChild(para);
+          colorChildList.push(para)
          }
+
+        function removeLast(){
+            if (colorChildList.length != 0){
+                element.removeChild(colorChildList.pop());
+                colorList.pop();
+                colorList_stringify = colorList.toString();
+                colorArr.value = colorList_stringify;
+
+            }
+        }
 
     </script>
     <script>

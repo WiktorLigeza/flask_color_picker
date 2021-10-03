@@ -1,74 +1,125 @@
 {% extends 'layout.html' %}
 {% block body %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<!--MOOD TABLE-->
 <h1>Dashboard <small> Welcome {{session.username}}</small></h1>
 <div>
-    <hr>
-  <h3>Moods <a class="btn btn-success pull-right" href="/add_mood"> Add</a></h3>
-  <table class="table table-striped">
-    <tr>
-      <th>ID</th>
-      <th>Name</th>
-      <th>Description</th>
-      <th>  </th>
-      <th></th>
-      <th></th>
-    </tr>
-    {% for device in devicelist %}
+  <hr>
+    <h3 type="button" class="collapsible">Moods  <a class="btn btn-success pull-right" href="/add_mood"> Add</a></h3>
+    <div class="content">
+        <table class="table table-striped">
       <tr>
-        <td>{{device.id}}</td>
-        <td>{{device.name}}</td>
-        <td>{{device.tag}}</td>
-        <td><a href="edit_device/{{device.id}}" class="btn btn-default pull-right">Edit</a></td>
-        <td>
-          <form action="{{url_for('delete_device', id=device.id)}}" method="post">
-            <input type="hidden" name="_method" value="DELETE">
-            <input type="submit" value="Delete" class="btn btn-danger">
-          </form>
-        </td>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>  </th>
+        <th></th>
+        <th></th>
       </tr>
-    {% endfor %}
-  </table>
+      {% for mood in moodList %}
+        <tr>
+          <td>{{mood.id}}</td>
+          <td>{{mood.name}}</td>
+          <td>{{mood.name}}</td>
+          <td><a href="edit_device/{{mood.id}}" class="btn btn-default pull-right"><i class="fa fa-edit"></i></a></td>
+          <td>
+            <form action="{{url_for('delete_device', id=mood.id)}}" method="post">
+              <input type="hidden" name="_method" value="DELETE">
+              <button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+
+    </div>
   <hr>
 </div>
 
+
+<!--DEVICE TABLE-->
 <div>
   <hr>
-  <h3>Devices <a class="btn btn-success pull-right" href="/add_device"> Add</a></h3>
-  <table class="table table-striped">
-    <tr>
-      <th>ID</th>
-      <th>Name</th>
-      <th>Tag</th>
-      <th>Registration Date</th>
-      <th style="text-align: center">Connected</th>
+    <h3 type="button" class="collapsible">Devices <a class="btn btn-success pull-right" href="/add_device"> Add</a></h3>
+    <div class="content">
+      <table class="table table-striped">
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Tag</th>
+          <th>Registration Date</th>
+          <th style="text-align: center">Connected</th>
 
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
 
-    </tr>
-    {% for device in devicelist %}
-      <tr>
-        <td>{{device.id}} </td>
-        <td>{{device.name}}</td>
-        <td>{{device.tag}}</td>
-        <td>{{device.registration_date}}</td>
-        <td style="text-align: center">Yes</td>
-        <td><a href="color/{{device.id}}" class="btn btn-info pull-right">Color</a></td>
-        <td><a href="edit_device/{{device.id}}" class="btn submit_btn_custom pull-right">Connect</a></td>
-        <td class="text-center"><a href="edit_device/{{device.id}}" class="btn btn-default ">Edit</a></td>
-        <td>
-          <form action="{{url_for('delete_device', id=device.id)}}" method="post">
-            <input type="hidden" name="_method" value="DELETE">
-            <input type="submit" value="Delete" class="btn btn-danger pull-left">
-          </form>
-        </td>
+        </tr>
+        {% for device in devicelist %}
+          <tr>
+            <td>{{device.id}} </td>
+            <td>{{device.name}}</td>
+            <td>{{device.tag}}</td>
+            <td>{{device.registration_date}}</td>
+            <td style="text-align: center">Yes</td>
+            <td><a href="color/{{device.id}}" class="btn btn-info pull-right">Color</a></td>
+            <td><a href="edit_device/{{device.id}}" class="btn submit_btn_custom pull-right">Connect</a></td>
+            <td class="text-center"><a href="edit_device/{{device.id}}" class="btn btn-default "><i class="fa fa-edit"></i></a></td>
+            <td>
+              <form action="{{url_for('delete_device', id=device.id)}}" method="post">
+                <input type="hidden" name="_method" value="DELETE">
+                <button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i></button>
+              </form>
+            </td>
 
-      </tr>
-    {% endfor %}
-  </table>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
   <hr>
 </div>
+
+
+<script>
+  var coll = document.getElementsByClassName("collapsible");
+  var i;
+  for (i = 0; i < coll.length; i++) {
+    coll[i].addEventListener("click", function() {
+      this.classList.toggle("active");
+      var content = this.nextElementSibling;
+      if (content.style.display === "block") {
+        content.style.display = "none";
+      } else {
+        content.style.display = "block";
+      }
+    });
+  }
+</script>
+<style>
+  .collapsible {
+  }
+
+  .active, .collapsible:hover {
+    color: rgba(0, 255,0,1);
+  }
+
+  .btn_thr {
+    background-color: DodgerBlue;
+    border: none;
+    color: white;
+    padding: 12px 16px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  .content {
+    padding: 0 18px;
+    display: none;
+    overflow: hidden;
+  }
+</style>
+
 
 {% endblock %}

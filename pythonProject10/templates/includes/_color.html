@@ -10,12 +10,18 @@
             height:100%;
             width:100%;
         }
-        body{
-            background-image:url("../../static/RGB_LED.png");
-            background-position:center center;
-            background-repeat:no-repeat;
+        /*body{*/
+        /*    background-image:url("../../static/RGB_LED.png");*/
+        /*    background-position:center center;*/
+        /*    background-repeat:no-repeat;*/
+        /*}*/
+
+        #singleColorControls{
+            height:70px;
+            width:100%;
+            padding:20px;
         }
-        #colorControls{
+        #moodControls{
             height:70px;
             width:100%;
             padding:20px;
@@ -76,18 +82,67 @@
 </head>
 
 <body>
-    <div id="colorControls">
-        <label for="colorChange">Hi {{session.username}}, Pick Your Color for: {{device.name}}</label>
-        <form method="POST">
-            <input name="colorChange" type="color" value=colorChange.value id="colorChange">
-            <p style="margin-bottom: 0px" ><input type="submit" onclick="sendMsg()" class="btn submit_btn_custom" value="Submit"></p>
+    <div id="singleColorControls" style="background: rgba(0,0,0,0.3); margin: auto; width: 60%; height: 55%;">
+        <div>
+            <!--  HEADER -->
+            <h1 style="margin-top: 0px;"> Select STEADY COLOR</h1>
+            <form method="POST">
+                <!--  SPEED SLIDER  -->
+                <p style="margin-bottom: 0px; color: cornsilk; " id="speed_label" > Change Speed: </p>
+                <input  style="margin-bottom: 5px;" type="range" min="1" max="100" value="50" class="slider" id="speed" oninput="speed_slider()" name="speed">
 
-        </form>
+                <!--  BRIGHTNESS SLIDER  -->
+                <p style="margin-bottom: 0px; color: cornsilk; " id="brightness_label"> Brightness:</p>
+                <input style="margin-bottom: 5px;"  type="range" min="1" max="100" value="50" class="slider" id="brightness" oninput="brightness_slider()" name="brightness">
 
-        <p style="margin-left: 500px">Hex Value:<span id="HexValue" >to set</span></p>
+                <!--  RADIO BUTTONS  -->
+                <div style="background: rgba(0,0,0,0.3); border-radius: 15px; color:cornsilk" >
+                    <div style="margin: 5px">
+                        <div class="row">
+                            <div style="float: left; width: 33.33%;">
+                                <input style="margin-left: 50%" type="radio" id="loop" name="drone" value="steady" checked>
+                                <label for="loop">Steady</label>
+                            </div>
+                            <div style="float: left; width: 33.33%;">
+                                <input style="margin-left: 50%" type="radio" id="boomerang" name="drone" value="dimming">
+                                <label for="boomerang">Dimming</label>
+                            </div>
+                            <div style="float: left; width: 33.33%;">
+                                <input style="margin-left: 50%" type="radio" id="repeat" name="drone" value="sparks">
+                                <label for="repeat">Sparks</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
+                <!--  COLOR PICKER  -->
+                <input style="margin-bottom: 5px;" name="colorChange" type="color" value=colorChange.value id="colorChange">
+
+                <!--  SUBMIT BUTTON  -->
+                <p style="margin-bottom: 5px; float: right;" ><input type="submit" class="btn submit_btn_custom" value="Submit"></p>
+
+                <!--  HIDDEN COLOR LIST  -->
+                <input style="margin-bottom: 5px;" type="hidden" name="colorList" id="colorList">
+            </form>
+        </div>
     </div>
+    <div id="moodControls" style="background: rgba(0,0,0,0.3); margin: auto; margin-top: 10%;  width: 60%; height: 55%;">
+        <div >
+            <!--  HEADER -->
+            <h1 style="margin-top: 0px;"> Select Mood</h1>
+            <form method="POST">
+                <label style="color: cornsilk;" for="moods">Choose Mood:</label>
+                <select name="moods" id="moods" class="custom-select">
+                    {% for mood in moodList %}
+                    <option value={{mood.name}}>{{mood.name}}</option>
+                    {% endfor %}
+                </select>
+                 <p style="margin-left: 5%; float: right;" ><input type="submit" onclick="sendMood()" class="btn submit_btn_custom" value="Submit"></p>
 
+            </form>
+        </div>
+    </div>
 </body>
+
 </html>
 
