@@ -30,25 +30,31 @@
     <script>
         var colorChange;
         var color = JSON.parse('{{ data | tojson | safe}}');
-        var initialColor = color.hexa;
-
-        window.onload = function(){
-            document.body.style.backgroundColor = initialColor;
-            document.getElementById('HexValue').innerHTML = initialColor;
-        };
+        var initialColor = color.hexa
+        var moods = JSON.parse('{{ moodListJS | tojson | safe}}');
+        var i = 0;
 
 
+        document.body.style.backgroundColor = initialColor;
         window.addEventListener("load", changemycolor);
 
         function changemycolor() {
-        colorChange = document.querySelector("#colorChange");
-        colorChange.value = initialColor;
-        colorChange.addEventListener("input", update);
+            colorChange = document.querySelector("#colorChange");
+            colorChange.value = initialColor;
+            colorChange.addEventListener("input", update);
         }
 
         function update(event) {
-        document.body.style.backgroundColor = event.target.value;
-        document.getElementById('HexValue').innerHTML = event.target.value;
+            document.body.style.backgroundColor = event.target.value;
+            colorChange_MOOD = document.querySelector("#colorChange_MOOD");
+            colorChange_MOOD.value = colorChange.value;
+            i++;
+            if (i==10){
+                sendSingle();
+                i = 0;
+            }
+
+            //sendSingle();
         }
 
     </script>
@@ -72,12 +78,21 @@
     });
 
     // Send a msg to the websocket
-    const sendMsg = () => {
-        const data_to_send = { user: '{{session.username}}', device_tag: '{{ device.tag }}', color: colorChange.value };
+    const sendSingle = () => {
+        const speed = document.getElementById("speed").value;
+        const brightness = document.getElementById("brightness").value;
+        const loop = document.querySelector('input[name="drone"]:checked').value;
+        const payload = {color: colorChange.value, brightness: brightness, speed: speed, loop:loop}
+        const data_to_send = { user: '{{session.username}}', device_tag: '{{ device.tag }}', type: "single", payload: payload };
         const data_in_json = JSON.stringify(data_to_send);
-        console.log(data_in_json)
         socket.send(data_in_json);
     }
+    const sendMood = () => {
+        const data_to_send = { user: '{{session.username}}', device_tag: '{{ device.tag }}', type: "mood", payload: current_mood.payload };
+        const data_in_json = JSON.stringify(data_to_send);
+        socket.send(data_in_json);
+    }
+
 </script>
 </head>
 
@@ -86,7 +101,7 @@
         <div>
             <!--  HEADER -->
             <h1 style="margin-top: 0px;"> Select STEADY COLOR</h1>
-            <form method="POST">
+            <div>
                 <!--  SPEED SLIDER  -->
                 <p style="margin-bottom: 0px; color: cornsilk; " id="speed_label" > Change Speed: </p>
                 <input  style="margin-bottom: 5px;" type="range" min="1" max="100" value="50" class="slider" id="speed" oninput="speed_slider()" name="speed">
@@ -100,16 +115,16 @@
                     <div style="margin: 5px">
                         <div class="row">
                             <div style="float: left; width: 33.33%;">
-                                <input style="margin-left: 50%" type="radio" id="loop" name="drone" value="steady" checked>
-                                <label for="loop">Steady</label>
+                                <input style="margin-left: 50%" type="radio" id="steady" name="drone" value="steady" checked>
+                                <label for="steady">Steady</label>
                             </div>
                             <div style="float: left; width: 33.33%;">
-                                <input style="margin-left: 50%" type="radio" id="boomerang" name="drone" value="dimming">
-                                <label for="boomerang">Dimming</label>
+                                <input style="margin-left: 50%" type="radio" id="dimming" name="drone" value="dimming">
+                                <label for="dimming">Dimming</label>
                             </div>
                             <div style="float: left; width: 33.33%;">
-                                <input style="margin-left: 50%" type="radio" id="repeat" name="drone" value="sparks">
-                                <label for="repeat">Sparks</label>
+                                <input style="margin-left: 50%" type="radio" id="sparks" name="drone" value="sparks">
+                                <label for="sparks">Sparks</label>
                             </div>
                         </div>
                     </div>
@@ -119,30 +134,65 @@
                 <input style="margin-bottom: 5px;" name="colorChange" type="color" value=colorChange.value id="colorChange">
 
                 <!--  SUBMIT BUTTON  -->
-                <p style="margin-bottom: 5px; float: right;" ><input type="submit" class="btn submit_btn_custom" value="Submit"></p>
+                <p style="margin-left: 5%; float: right;" ><input type="submit" onclick="sendSingle()" class="btn submit_btn_custom" value="Submit"></p>
 
                 <!--  HIDDEN COLOR LIST  -->
                 <input style="margin-bottom: 5px;" type="hidden" name="colorList" id="colorList">
-            </form>
+            </div>
         </div>
     </div>
     <div id="moodControls" style="background: rgba(0,0,0,0.3); margin: auto; margin-top: 10%;  width: 60%; height: 55%;">
         <div >
             <!--  HEADER -->
             <h1 style="margin-top: 0px;"> Select Mood</h1>
-            <form method="POST">
+            <div>
+                <input  name="colorChange_MOOD" type="hidden" value=colorChange.value id="colorChange_MOOD">
                 <label style="color: cornsilk;" for="moods">Choose Mood:</label>
                 <select name="moods" id="moods" class="custom-select">
                     {% for mood in moodList %}
-                    <option value={{mood.name}}>{{mood.name}}</option>
+                    <option value={{mood.id}}>{{mood.name}}</option>
                     {% endfor %}
                 </select>
                  <p style="margin-left: 5%; float: right;" ><input type="submit" onclick="sendMood()" class="btn submit_btn_custom" value="Submit"></p>
-
-            </form>
+            </div>
         </div>
     </div>
 </body>
 
+<!--INPUT LISTENERS-->
+<script>
+    var current_mood = moods[0];
+    console.log(current_mood);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document
+          .getElementById('moods')
+          .addEventListener('input', handleSelect);
+      });
+
+    window.onload = function() {speed_slider();brightness_slider()};
+    function speed_slider() {
+        const b = document.getElementById("speed").value;
+        document.getElementById("speed_label").innerHTML = "Change Speed: "+b;
+    }
+    function brightness_slider() {
+        const b = document.getElementById("brightness").value;
+        document.getElementById("brightness_label").innerHTML = "Brightness: "+b;
+    }
+
+    function handleSelect(ev) {
+        let select = ev.target;
+        const moods_id = select.value
+        console.log(moods_id)
+        for (var i = 0; i < moods.length; i++){
+             if(moods[i].id == moods_id){
+                current_mood = moods[i];
+                console.log(current_mood);
+                 break;
+             }
+         }
+      }
+
+</script>
 </html>
 

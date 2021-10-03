@@ -1,6 +1,6 @@
 import asyncio
 
-from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
+from flask import Flask, render_template, flash, redirect, url_for, session, request, logging, jsonify
 import json
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
@@ -131,6 +131,19 @@ from device_menagement import *
 from mood_management import *
 
 
+class MoodJS:
+    def __init__(self, id, name, payload, owner_id):
+        self.id = id
+        self.name = name
+        self.payload = payload
+        self.owner_id = owner_id
+
+
+def serialize_mood(query_list):
+    mood_list_serializable = []
+    for obj in query_list:
+        mood_list_serializable.append({"id":obj.id, "name":obj.name, "payload":json.loads(obj.payload),"owner_id":obj.owner_id})
+    return mood_list_serializable
 
 ################################################ ROUTES
 # Check if user logged in
@@ -230,14 +243,18 @@ def color(id):
     owner = User.query.filter_by(username=user_name).first()
     device = Device.query.get(id)
     mood_list = Mood.query.filter_by(owner_id=owner.id).all()
+    mood_js = serialize_mood(mood_list)
+
     if request.method == "POST":
         backend_value = request.form.get('colorChange')
+        if backend_value is None:
+            backend_value = request.form.get('colorChange_MOOD')
         data = {'hexa': backend_value}
-        print("color: ", backend_value)
-        return render_template('color.html', data=data, device=device)
+        print(backend_value)
 
-    data = {'hexa': "#911abc" }
-    return render_template('color.html', data=data, device=device, moodList=mood_list)
+        return render_template('color.html', data=data, device=device, moodList=mood_list, moodListJS=mood_js)
+    data = {'hexa': "#911abc"}
+    return render_template('color.html', data=data, device=device, moodList=mood_list, moodListJS=mood_js)
 
 
 @app.route("/add_device", methods=['GET', 'POST'])
