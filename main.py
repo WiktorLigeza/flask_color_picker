@@ -364,7 +364,7 @@ if __name__ == '__main__':
     #socketio.run(app)
     app.config['SESSION_TYPE'] = 'filesystem'
     app.secret_key = secret_key
-    app.run(debug=False)
+    app.run(debug=True)
 
 # arr_x = []
 # arr_y = []
