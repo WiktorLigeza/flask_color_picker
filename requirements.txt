@@ -1,4 +1,4 @@
-Flask==2.0.1
+Flask==1.1.2
 websockets==9.0.1
 plotly==4.14.3
 itsdangerous==2.0.1
@@ -7,7 +7,7 @@ Flask_SQLAlchemy==2.5.1
 dash_core_components==2.0.0
 dash_html_components==2.0.0
 flask_mail==0.9.1
-flask_migrate==3.1.0
+flask_migrate==2.7.0
 flask_script==2.0.6
 passlib==1.7.4
 WTForms==2.3.3
