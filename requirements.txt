@@ -31,17 +31,10 @@ gast==0.3.3
 google-auth==1.27.0
 google-auth-oauthlib==0.4.2
 google-pasta==0.2.0
-grpcio==1.38.1
-h5py==2.10.0
 idna==2.10
 image-classifiers==1.0.0
 imageio==2.9.0
 imutils==0.5.4
-ipykernel==5.5.0
-ipython==7.21.0
-ipython-genutils==0.2.0
-ipywidgets==7.6.3
-isort==5.8.0
 itsdangerous==2.0.1
 jedi==0.18.0
 Jinja2==3.0.1
@@ -121,7 +114,6 @@ testpath==0.4.4
 threadpoolctl==2.1.0
 toml==0.10.2
 tornado==6.1
-tqdm==4.59.0
 traitlets==5.0.5
 typing-extensions==3.7.4.3
 urllib3==1.26.3
