@@ -363,7 +363,7 @@ def confirm_email(token):
 if __name__ == '__main__':
     #socketio.run(app)
     app.secret_key = secret_key
-    app.run(debug=True)
+    app.run(debug=False)
 
 # arr_x = []
 # arr_y = []
