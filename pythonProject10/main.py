@@ -12,9 +12,6 @@ from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
-import plotly.express as px
-import dash_html_components as html
-import dash_core_components as dcc
 import socket_manager as sm
 
 ################################################ INIT
