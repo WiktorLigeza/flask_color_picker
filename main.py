@@ -14,7 +14,7 @@ from manager_package import socket_manager as sm
 
 ################################################ INIT
 connected = set()
-secret_key = 'jpgmd'
+secret_key = 'DUPAZBITA'
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 # Database
