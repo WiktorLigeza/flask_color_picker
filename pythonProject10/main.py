@@ -1,18 +1,16 @@
 import asyncio
-
-from flask import Flask, render_template, flash, redirect, url_for, session, request, logging, jsonify
+from flask import Flask, session, flash, redirect, url_for, render_template, request
 import json
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 import os
-import subprocess
 from functools import wraps
 from datetime import datetime
-from flask_mail import Mail, Message
-from itsdangerous import URLSafeTimedSerializer, SignatureExpired
+from flask_mail import Mail
+from itsdangerous import URLSafeTimedSerializer
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
-import socket_manager as sm
+from manager_package import socket_manager as sm
 
 ################################################ INIT
 connected = set()
@@ -123,9 +121,9 @@ class MoodSchema(ma.Schema):
 mood_schema = MoodSchema()
 moods_schema = MoodSchema(many=True)
 
-from user_management import *
-from device_menagement import *
-from mood_management import *
+from manager_package.user_management import *
+from manager_package.device_menagement import *
+from manager_package.mood_management import *
 
 
 class MoodJS:
