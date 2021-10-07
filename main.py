@@ -23,7 +23,6 @@ app.config['SQLALCHEMY_BINDS'] = {'two': 'sqlite:///' + os.path.join(basedir, 'd
                                   'three': 'sqlite:///' + os.path.join(basedir, 'mood.sqlite'),}
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Init db
-app.config['SESSION_TYPE'] = 'memcached'
 db = SQLAlchemy(app)
 # Init migrate
 manager = Manager(app)
@@ -363,6 +362,7 @@ def confirm_email(token):
 
 if __name__ == '__main__':
     #socketio.run(app)
+    app.config['SESSION_TYPE'] = 'filesystem'
     app.secret_key = secret_key
     app.run(debug=False)
 
