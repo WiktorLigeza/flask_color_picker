@@ -22,9 +22,9 @@
           <td>{{mood.id}}</td>
           <td>{{mood.name}}</td>
           <td>{{mood.name}}</td>
-          <td><a href="edit_device/{{mood.id}}" class="btn btn-default pull-right"><i class="fa fa-edit"></i></a></td>
+          <td><a href="edit_mood/{{mood.id}}" class="btn btn-default pull-right"><i class="fa fa-edit"></i></a></td>
           <td>
-            <form action="{{url_for('delete_device', id=mood.id)}}" method="post">
+            <form action="{{url_for('delete_mood', id=mood.id)}}" method="post">
               <input type="hidden" name="_method" value="DELETE">
               <button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i></button>
             </form>

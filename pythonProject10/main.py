@@ -237,6 +237,40 @@ def delete_device(id):
     return redirect(url_for('dashboard'))
 
 
+@app.route("/delete_mood/<string:id>", methods=['POST'])
+@is_logged_in
+def delete_mood(id):
+    mood = Mood.query.get(id)
+    db.session.delete(mood)
+    db.session.commit()
+
+    flash('Mood successfully deleted', 'success')
+    return redirect(url_for('dashboard'))
+
+
+@app.route("/edit_mood/<string:id>", methods=['GET', 'POST'])
+@is_logged_in
+def edit_mood(id):
+    mood = Mood.query.get(id)
+    name = mood.name
+    payload = mood.payload
+
+    if request.method == "POST":
+        if len(request.form.get('name')) != 0 and len(request.form.get('colorList')) != 0:
+            name = request.form.get('name')
+            color_list = request.form.get('colorList')
+            brightness = request.form.get('brightness')
+            speed = request.form.get('speed')
+            loop = request.form.get('drone')
+            payload = {"color_list": color_list, "brightness": brightness, "speed": speed, "loop": loop}
+            mood.name = name
+            mood.payload = json.dumps(payload)
+            db.session.commit()
+            flash('Device successfully updated', 'success')
+            return redirect(url_for('dashboard'))
+    return render_template('edit_mood.html',  data={"name": name, "payload": json.loads(payload), 'hexa': "#911abc"})
+
+
 @app.route('/color/<string:id>', methods=['GET', 'POST'])
 def color(id):
     user_name = session['username']
@@ -298,10 +332,6 @@ def add_mood():
             speed = request.form.get('speed')
             loop = request.form.get('drone')
             payload = {"color_list": color_list, "brightness": brightness, "speed": speed, "loop": loop}
-
-            print("name: ", name)
-            print("payload: ", payload)
-            print("owner id: ", owner.id)
 
             new_mood = Mood(name, json.dumps(payload), owner.id)
             db.session.add(new_mood)

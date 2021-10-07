@@ -1,0 +1,203 @@
+<!doctype html>
+<html>
+<head>
+    <title>HTML5 Input Color Picker </title>
+    <style>
+        body, html{
+            background:#911abc ;
+            padding:0;
+            margin:0;
+            height:100%;
+            width:100%;
+        }
+        #colorControls{
+            height:70px;
+            width:100%;
+            padding:20px;
+        }
+    </style>
+
+
+</head>
+
+<body>
+    <div id="colorControls" style="background: rgba(0,0,0,0.3); margin: auto; width: 60%; height: 55%;">
+        <div >
+            <form method="POST">
+                <!--  NAME INPUT  -->
+                <p style="margin-bottom: 0px; color: cornsilk; " id="name_label"> Name: </p>
+                <input style="margin-bottom: 5px;" name="name" class="form-control" id="name">
+
+                <!--  SPEED SLIDER  -->
+                <p style="margin-bottom: 0px; color: cornsilk; " id="speed_label" > Change Speed: </p>
+                <input  style="margin-bottom: 5px;" type="range" min="1" max="100" value="50" class="slider" id="speed" oninput="speed_slider()" name="speed">
+
+                <!--  BRIGHTNESS SLIDER  -->
+                <p style="margin-bottom: 0px; color: cornsilk; " id="brightness_label"> Brightness:</p>
+                <input style="margin-bottom: 5px;"  type="range" min="1" max="100" value="50" class="slider" id="brightness" oninput="brightness_slider()" name="brightness">
+
+                <!--  RADIO BUTTONS  -->
+                <div style="background: rgba(0,0,0,0.3); border-radius: 15px; color:cornsilk" >
+                    <div style="margin: 5px">
+                        <div class="row">
+                            <div style="float: left; width: 33.33%;">
+                                <input style="margin-left: 50%" type="radio" id="loop" name="drone" value="loop" checked>
+                                <label for="loop">Loop</label>
+                            </div>
+                            <div style="float: left; width: 33.33%;">
+                                <input style="margin-left: 50%" type="radio" id="boomerang" name="drone" value="boomerang">
+                                <label for="boomerang">Boomerang</label>
+                            </div>
+                            <div style="float: left; width: 33.33%;">
+                                <input style="margin-left: 50%" type="radio" id="repeat" name="drone" value="repeat">
+                                <label for="repeat">Repeat</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!--  COLOR PICKER  -->
+                <input style="margin-bottom: 5px;" name="colorChange" type="color" value=colorChange.value id="colorChange">
+
+                <!--  SUBMIT BUTTON  -->
+                <p style="margin-bottom: 5px; float: right;" ><input type="submit" class="btn submit_btn_custom" value="Submit"></p>
+
+                <!--  HIDDEN COLOR LIST  -->
+                <input style="margin-bottom: 5px;" type="hidden" name="colorList" id="colorList">
+            </form>
+        </div>
+
+            <div style = "display: inline-block;">
+                <!--  ADD COLOR BUTTON  -->
+                <p style="margin-bottom: 5px; display: inline-block; " ><input style="background: rgba(0, 122, 0, 1)" type="submit" onclick="addColor()" class="btn submit_btn_custom" value="Add Color"></p>
+                <!--  REMOVE COLOR BUTTON  -->
+                <p style="margin-bottom: 5px; display: inline-block;" ><input style="background: rgba(122, 0, 0, 1)" type="submit" onclick="removeLast()" class="btn submit_btn_custom" value="Remove Last"></p>
+            </div>
+            <!--  DOTS DISPLAY DIV  -->
+            <div id="dot_list" style="background: rgba(0,0,0,0.3); border-radius: 15px;"></div>
+    </div>
+
+
+    <script>
+        function stringInject(str, data) {
+           if (typeof str === 'string' && (data instanceof Array)) {
+
+        return str.replace(/({\d})/g, function(i) {
+            return data[i.replace(/{/, '').replace(/}/, '')];
+        });
+    } else if (typeof str === 'string' && (data instanceof Object)) {
+
+        if (Object.keys(data).length === 0) {
+            return str;
+        }
+
+        for (let key in data) {
+            return str.replace(/({([^}]+)})/g, function(i) {
+                let key = i.replace(/{/, '').replace(/}/, '');
+                if (!data[key]) {
+                    return i;
+                }
+
+                return data[key];
+            });
+        }
+    } else if (typeof str === 'string' && data instanceof Array === false || typeof str === 'string' && data instanceof Object === false) {
+
+            return str;
+    } else {
+
+        return false;
+    }
+        }
+
+        var colorChange;
+        var data = JSON.parse('{{ data | tojson | safe}}');
+        var initialColor = data.hexa;
+        console.log(initialColor);
+        console.log(data.payload);
+        console.log(colorList);
+        console.log(data.name);
+        var colorList_stringify;
+
+        document.getElementById("speed").value = data.payload.speed;
+        document.getElementById("brightness").value = data.payload.brightness;
+        document.getElementById("name").value = data.name;
+        var colorList = data.payload.color_list.split(',');
+        radiobtn = document.getElementById(data.payload.loop);
+        radiobtn.checked = true;
+        colorArr = document.querySelector("#colorList");
+        colorList_stringify = colorList.toString();
+        colorArr.value = colorList_stringify;
+        const element = document.getElementById("dot_list");
+        var colorChildList = []
+
+
+
+        window.onload = function(){
+            document.body.style.backgroundColor = initialColor;
+            document.getElementById('HexValue').innerHTML = initialColor;
+        };
+
+
+        window.addEventListener("load", changemycolor);
+
+        function changemycolor() {
+        colorChange = document.querySelector("#colorChange");
+        colorChange.value = initialColor;
+        colorChange.addEventListener("input", update);
+        }
+
+        function update(event) {
+        document.body.style.backgroundColor = event.target.value;
+        document.getElementById('HexValue').innerHTML = event.target.value;
+        }
+
+        function addColor() {
+          colorList.push(colorChange.value);
+          colorList_stringify = colorList.toString();
+          colorArr.value = colorList_stringify;
+          var color = colorChange.value;
+          var para = document.createElement("span");
+          para.style=stringInject("height: 25px; width: 25px; background-color: {color};" +
+              " border-radius: 50%; display: inline-block; margin: 5px; margin-bottom: 0px;", { color: color});
+          element.appendChild(para);
+          colorChildList.push(para)
+         }
+
+        function removeLast(){
+            if (colorChildList.length != 0){
+                element.removeChild(colorChildList.pop());
+                colorList.pop();
+                colorList_stringify = colorList.toString();
+                colorArr.value = colorList_stringify;
+
+            }
+        }
+
+    </script>
+    <script>
+        window.onload = function() {speed_slider();brightness_slider(); loadChildList() };
+
+        function loadChildList() {
+            for (var i = 0; i < colorList.length; i++){
+                var para = document.createElement("span");
+                    para.style=stringInject("height: 25px; width: 25px; background-color: {color};" +
+                    " border-radius: 50%; display: inline-block; margin: 5px; margin-bottom: 0px;", { color: colorList[i]});
+                colorChildList.push(para)
+                element.appendChild(para);
+            }
+        }
+
+        function speed_slider() {
+            const b = document.getElementById("speed").value;
+            document.getElementById("speed_label").innerHTML = "Change Speed: "+b;
+        }
+        function brightness_slider() {
+            const b = document.getElementById("brightness").value;
+            document.getElementById("brightness_label").innerHTML = "Brightness: "+b;
+        }
+    </script>
+
+
+</body>
+</html>
