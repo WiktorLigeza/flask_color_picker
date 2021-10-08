@@ -22,6 +22,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'us
 app.config['SQLALCHEMY_BINDS'] = {'two': 'sqlite:///' + os.path.join(basedir, 'device.sqlite'),
                                   'three': 'sqlite:///' + os.path.join(basedir, 'mood.sqlite'),}
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+app.secret_key = secret_key
+app.config['SECRET_KEY'] = secret_key
+app.config['SESSION_TYPE'] = 'filesystem'
+
 # Init db
 db = SQLAlchemy(app)
 # Init migrate
