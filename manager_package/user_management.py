@@ -43,8 +43,9 @@ def user_registration(s, mail, form, db):
             flash('Please confirm your email - the link will be active for 48 hours', 'info')
             return redirect(url_for('login'))
 
-        except:
-            pass
+        except Exception as e:
+            flash(str(e), 'danger')
+            render_template('register.html', form=form)
 
         flash('wrong email', 'danger')
         render_template('register.html', form=form)
