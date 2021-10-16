@@ -12,16 +12,27 @@ from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 from manager_package import socket_manager as sm
 
+
 ################################################ INIT
 connected = set()
 secret_key = 'DUPAZBITA'
 app = Flask(__name__)
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 # Database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'user.sqlite')
-app.config['SQLALCHEMY_BINDS'] = {'two': 'sqlite:///' + os.path.join(basedir, 'device.sqlite'),
-                                  'three': 'sqlite:///' + os.path.join(basedir, 'mood.sqlite'),}
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://atbtyimqagxile:3ed69774bbbe3ef62dd2ffd48893ebb617' \
+                                        '568774127a3494b92809075b692156@ec2-54-74-77-126.eu-we' \
+                                        'st-1.compute.amazonaws.com:5432/dmv5ce1q4nsml'
+app.config['SQLALCHEMY_POOL_RECYCLE'] = 60
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'user.sqlite')
+# app.config['SQLALCHEMY_BINDS'] = {'two': 'sqlite:///' + os.path.join(basedir, 'device.sqlite'),
+#                                   'three': 'sqlite:///' + os.path.join(basedir, 'mood.sqlite'),}
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.secret_key = secret_key
+app.config['SECRET_KEY'] = secret_key
+app.config['SESSION_TYPE'] = 'filesystem'
+
+
 # Init db
 db = SQLAlchemy(app)
 # Init migrate
@@ -46,9 +57,8 @@ class User(db.Model):
     name = db.Column(db.String(100))
     email = db.Column(db.String(100), unique=True)
     username = db.Column(db.String(100), unique=True)
-    password = db.Column(db.String(25))
+    password = db.Column(db.String(125))
     isActive = db.Column(db.BOOLEAN)
-
 
     def __init__(self, name, email, username, password, isActive):
         self.name = name
@@ -72,11 +82,11 @@ users_schema = UserSchema(many=True)
 ################################################ DEVICE DB HANDLING
 # Device Class/Model
 class Device(db.Model):
-    __bind_key__ = 'two'
+    #__bind_key__ = 'two'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
     tag = db.Column(db.String(100), unique=True)
-    connection_key = db.Column(db.String(25))
+    connection_key = db.Column(db.String(125))
     registration_date = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
     owner_id = db.Column(db.Integer)
 
@@ -99,7 +109,7 @@ devices_schema = DeviceSchema(many=True)
 
 
 class Mood(db.Model):
-    __bind_key__ = 'three'
+    #__bind_key__ = 'three'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
     payload = db.Column(db.String(10000))
@@ -166,16 +176,16 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    return user_log_in(session=session)
+    return user_log_in(session=session, db=db)
 
 
 @app.route("/dashboard")
 @is_logged_in
 def dashboard():
     user_name = session['username']
-    owner = User.query.filter_by(username=user_name).first()
-    device_list = Device.query.filter_by(owner_id=owner.id).all()
-    mood_list = Mood.query.filter_by(owner_id=owner.id).all()
+    owner = db.session.query(User).filter_by(username=user_name).first()
+    device_list = db.session.query(Device).filter_by(owner_id=owner.id).all()
+    mood_list = db.session.query(Mood).filter_by(owner_id=owner.id).all()
     if len(device_list) > 0:
         return render_template('dashboard.html', devicelist=device_list, moodList=mood_list)
     else:
@@ -186,7 +196,7 @@ def dashboard():
 @app.route("/edit_device/<string:id>", methods=['GET', 'POST'])
 @is_logged_in
 def edit_device(id):
-    device = Device.query.get(id)
+    device = db.session.query(Device).get(id)
     form = DeviceFormUpdate(request.form)
     form.name.data = device.name
     form.tag.data = device.tag
@@ -208,7 +218,7 @@ def edit_device(id):
 @app.route("/edit_device/edit_connection_key/<string:id>", methods=['GET', 'POST'])
 @is_logged_in
 def edit_connection_key(id):
-    device = Device.query.get(id)
+    device = db.session.query(Device).get(id)
     print(id)
     form = ResetConnectionKey(request.form)
 
@@ -224,7 +234,7 @@ def edit_connection_key(id):
 @app.route("/delete_device/<string:id>", methods=['POST'])
 @is_logged_in
 def delete_device(id):
-    device = Device.query.get(id)
+    device = db.session.query(Device).get(id)
     db.session.delete(device)
     db.session.commit()
 
@@ -235,7 +245,7 @@ def delete_device(id):
 @app.route("/delete_mood/<string:id>", methods=['POST'])
 @is_logged_in
 def delete_mood(id):
-    mood = Mood.query.get(id)
+    mood = db.session.query(Mood).get(id)
     db.session.delete(mood)
     db.session.commit()
 
@@ -246,7 +256,7 @@ def delete_mood(id):
 @app.route("/edit_mood/<string:id>", methods=['GET', 'POST'])
 @is_logged_in
 def edit_mood(id):
-    mood = Mood.query.get(id)
+    mood = db.session.query(Mood).get(id)
     name = mood.name
     payload = mood.payload
 
@@ -269,9 +279,9 @@ def edit_mood(id):
 @app.route('/color/<string:id>', methods=['GET', 'POST'])
 def color(id):
     user_name = session['username']
-    owner = User.query.filter_by(username=user_name).first()
-    device = Device.query.get(id)
-    mood_list = Mood.query.filter_by(owner_id=owner.id).all()
+    owner = db.session.query(User).filter_by(username=user_name).first()
+    device = db.session.query(Device).get(id)
+    mood_list = db.session.query(Mood).filter_by(owner_id=owner.id).all()
     mood_js = serialize_mood(mood_list)
 
     if request.method == "POST":
@@ -290,7 +300,7 @@ def color(id):
 @is_logged_in
 def add_device():
     user_name = session['username']
-    owner = User.query.filter_by(username=user_name).first()
+    owner = db.session.query(User).filter_by(username=user_name).first()
     form = DeviceForm(request.form)
     if request.method == 'POST' and form.validate():
         name = form.name.data
@@ -310,6 +320,8 @@ def add_device():
 @app.route('/logout')
 @is_logged_in
 def logout():
+    db.session.remove()
+    db.session.dispose()
     return user_log_out(session=session)
 
 
@@ -317,7 +329,7 @@ def logout():
 @is_logged_in
 def add_mood():
     user_name = session['username']
-    owner = User.query.filter_by(username=user_name).first()
+    owner = db.session.query(User).filter_by(username=user_name).first()
     if request.method == "POST":
         data = {'hexa': request.form.get('colorChange')}
         if len(request.form.get('name')) != 0 and len(request.form.get('colorList')) != 0:
@@ -347,14 +359,14 @@ def confirm_email(token):
     try:
         email = s.loads(token, salt='email-confirm', max_age=72800)
     except SignatureExpired:
-        to_die = User.query.filter(User.email.endswith(s.loads(token, salt='email-confirm'))).all()
-        db.session.delete(to_die[0])
+        user = db.session.query(User).filter(User.email.endswith(s.loads(token, salt='email-confirm'))).first()
+        db.session.delete(user)
         db.session.commit()
         flash('The token is expired! Pleas register again', 'danger')
         return redirect(url_for('register'))
 
-    result = User.query.filter(User.email.endswith(email)).all()
-    result[0].isActive = True
+    user = db.session.query(User).filter(User.email.endswith(email)).first()
+    user.isActive = True
     db.session.commit()
     flash('Your email is confirmed you can now logg in', 'success')
     return redirect(url_for('login'))

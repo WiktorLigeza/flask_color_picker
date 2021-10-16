@@ -42,22 +42,22 @@ def user_registration(s, mail, form, db):
             db.session.commit()
             flash('Please confirm your email - the link will be active for 48 hours', 'info')
             return redirect(url_for('login'))
-
-        except:
-            pass
+        except Exception as e:
+            flash(str(e), 'danger')
+            render_template('register.html', form=form)
 
         flash('wrong email', 'danger')
         render_template('register.html', form=form)
     return render_template('register.html', form=form)
 
 
-def user_log_in(session):
+def user_log_in(session, db):
     if request.method == 'POST':
         # Get Form Fields
         username = request.form['username']
         password_candidate = request.form['password']
 
-        result = User.query.filter(User.username.endswith(username)).all()
+        result = db.session.query(User).filter(User.username.endswith(username)).all()
         if len(result) > 0:
             if result[0].isActive:
                 password = result[0].password
