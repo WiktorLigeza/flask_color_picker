@@ -321,7 +321,6 @@ def add_device():
 @is_logged_in
 def logout():
     db.session.remove()
-    db.session.dispose()
     return user_log_out(session=session)
 
 
