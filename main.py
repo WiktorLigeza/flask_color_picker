@@ -374,6 +374,7 @@ def confirm_email(token):
 
 if __name__ == '__main__':
     #socketio.run(app)
+    app.config['SESSION_TYPE'] = 'filesystem'
     app.secret_key = secret_key
     app.run(debug=True)
 
