@@ -60,7 +60,7 @@
     </script>
     <script>
     // Create WebSocket connection.
-    const socket = new WebSocket('wss://hal9000-color-picker-websockserver.glitch.me');
+    let socket = new WebSocket('wss://hal9000-color-picker-websockserver.glitch.me');
 
     // Connection opened
     socket.addEventListener('open', function (event) {
@@ -70,6 +70,7 @@
     // Connection closed
     socket.addEventListener('close', function (event) {
         console.log('Disconnected from the WS Server!')
+        socket = new WebSocket('wss://hal9000-color-picker-websockserver.glitch.me');
     });
 
     // Listen for messages

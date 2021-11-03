@@ -12,7 +12,6 @@ from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 from manager_package import socket_manager as sm
 
-
 ################################################ INIT
 connected = set()
 secret_key = 'DUPAZBITA'
@@ -32,14 +31,12 @@ app.secret_key = secret_key
 app.config['SECRET_KEY'] = secret_key
 app.config['SESSION_TYPE'] = 'filesystem'
 
-
 # Init db
 db = SQLAlchemy(app)
 # Init migrate
 manager = Manager(app)
 migrate = Migrate(app, db)
 manager.add_command('db', MigrateCommand)
-
 
 # Init ma
 ma = Marshmallow(app)
@@ -82,7 +79,7 @@ users_schema = UserSchema(many=True)
 ################################################ DEVICE DB HANDLING
 # Device Class/Model
 class Device(db.Model):
-    #__bind_key__ = 'two'
+    # __bind_key__ = 'two'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
     tag = db.Column(db.String(100), unique=True)
@@ -109,7 +106,7 @@ devices_schema = DeviceSchema(many=True)
 
 
 class Mood(db.Model):
-    #__bind_key__ = 'three'
+    # __bind_key__ = 'three'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
     payload = db.Column(db.String(10000))
@@ -147,8 +144,18 @@ class MoodJS:
 def serialize_mood(query_list):
     mood_list_serializable = []
     for obj in query_list:
-        mood_list_serializable.append({"id":obj.id, "name":obj.name, "payload":json.loads(obj.payload),"owner_id":obj.owner_id})
+        mood_list_serializable.append(
+            {"id": obj.id, "name": obj.name, "payload": json.loads(obj.payload), "owner_id": obj.owner_id})
     return mood_list_serializable
+
+
+def serialize_device(query_list):
+    device_list_serializable = []
+    for obj in query_list:
+        device_list_serializable.append(
+            {"id": obj.id, "name": obj.name, "tag": obj.tag})
+    return device_list_serializable
+
 
 ################################################ ROUTES
 # Check if user logged in
@@ -160,6 +167,7 @@ def is_logged_in(f):
         else:
             flash('Unauthorized, Please login', 'danger')
             return redirect(url_for('login'))
+
     return wrap
 
 
@@ -185,9 +193,10 @@ def dashboard():
     user_name = session['username']
     owner = db.session.query(User).filter_by(username=user_name).first()
     device_list = db.session.query(Device).filter_by(owner_id=owner.id).all()
+    device_list_js = serialize_device(device_list)
     mood_list = db.session.query(Mood).filter_by(owner_id=owner.id).all()
     if len(device_list) > 0:
-        return render_template('dashboard.html', devicelist=device_list, moodList=mood_list)
+        return render_template('dashboard.html', devicelist=device_list, moodList=mood_list, deviceListJS=device_list_js)
     else:
         msg = "no devices"
         return render_template('dashboard.html', msg=msg)
@@ -273,7 +282,7 @@ def edit_mood(id):
             db.session.commit()
             flash('Device successfully updated', 'success')
             return redirect(url_for('dashboard'))
-    return render_template('edit_mood.html',  data={"name": name, "payload": json.loads(payload), 'hexa': "#911abc"})
+    return render_template('edit_mood.html', data={"name": name, "payload": json.loads(payload), 'hexa': "#911abc"})
 
 
 @app.route('/color/<string:id>', methods=['GET', 'POST'])
@@ -372,7 +381,7 @@ def confirm_email(token):
 
 
 if __name__ == '__main__':
-    #socketio.run(app)
+    # socketio.run(app)
     app.config['SESSION_TYPE'] = 'filesystem'
     app.secret_key = secret_key
     app.run(debug=True)
@@ -406,4 +415,3 @@ if __name__ == '__main__':
 # def chart():
 #     fig = px.line(x=arr_x, y=arr_y)
 #     return html.Div([dcc.Graph(figure=fig)])
-

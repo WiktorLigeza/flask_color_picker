@@ -43,7 +43,7 @@
   <hr>
     <h3 type="button" class="collapsible">Devices <a class="btn btn-success pull-right" href="/add_device"> Add</a></h3>
     <div class="content">
-      <table class="table table-striped">
+      <table id="deviceTable" class="table table-striped">
         <tr>
           <th>ID</th>
           <th>Name</th>
@@ -63,7 +63,7 @@
             <td>{{device.name}}</td>
             <td>{{device.tag}}</td>
             <td>{{device.registration_date}}</td>
-            <td style="text-align: center">Yes</td>
+            <td style="text-align: center">no info</td>
             <td><a href="color/{{device.id}}" class="btn btn-info pull-right">Color</a></td>
             <td><a href="edit_device/{{device.id}}" class="btn submit_btn_custom pull-right">Connect</a></td>
             <td class="text-center"><a href="edit_device/{{device.id}}" class="btn btn-default "><i class="fa fa-edit"></i></a></td>
@@ -81,6 +81,85 @@
   <hr>
 </div>
 
+
+<script>
+  var devices = JSON.parse('{{ deviceListJS | tojson | safe}}');
+  console.log(devices)
+  var myTable = document.getElementById('deviceTable');
+  var yyy;
+  var flag_ = false;
+  function connection(){
+     // Create WebSocket connection.
+    let socket = new WebSocket('wss://hal9000-color-picker-websockserver.glitch.me');
+    yyy = socket
+    // Connection opened
+    socket.addEventListener('open', function (event) {
+        console.log('Connected to the WS Server!');
+        flag_ = true;
+    });
+
+    // Connection closed
+    socket.addEventListener('close', function (event) {
+        console.log('Disconnected from the WS Server!');
+        flag_ = false;
+        connection();
+    });
+
+    // Listen for messages
+    socket.addEventListener('message', function (event) {
+        if(event.data.slice(0, 4) == "pong"){
+          const obj = JSON.parse(event.data.slice(4))
+          var index = search(devices, obj.tag)
+          if (index != -1){
+            myTable.rows[index+1].cells[4].innerHTML = obj.isActive;
+          }
+
+        }
+    });
+  }
+
+  function search(arr, what) {
+  for (var i = 0; i < Object.size(arr); i++){
+   if(arr[i].tag == what){
+     return i;
+    }
+  }
+  return -1;
+}
+
+  Object.size = function(obj) {
+    var size = 0,
+      key;
+    for (key in obj) {
+      if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
+  };
+
+  const ping = () => {
+    for(const device_ in devices){
+      var msg_ping = "isactive "+ devices[device_].tag;
+      yyy.send(msg_ping);
+    }
+  }
+
+  function timeout() {
+    setTimeout(function () {
+      if (flag_) {
+        ping();
+      }
+      timeout();
+    }, 1000);
+
+  }
+   connection();
+   timeout();
+
+
+
+
+
+</script>
 
 <script>
   var coll = document.getElementsByClassName("collapsible");
