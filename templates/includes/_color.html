@@ -1,4 +1,5 @@
 <!doctype html>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <html>
 <head>
     <title>HTML5 Input Color Picker </title>
@@ -98,6 +99,7 @@
 </head>
 
 <body>
+    <!-- SINGLE COLOR DIV-->
     <div id="singleColorControls" style="background: rgba(0,0,0,0.3); margin: auto; width: 60%; height: 55%;">
         <div>
             <!--  HEADER -->
@@ -142,6 +144,7 @@
             </div>
         </div>
     </div>
+    <!-- MOOD DIV-->
     <div id="moodControls" style="background: rgba(0,0,0,0.3); margin: auto; margin-top: 10%;  width: 60%; height: 55%;">
         <div >
             <!--  HEADER -->
@@ -154,7 +157,11 @@
                     <option value={{mood.id}}>{{mood.name}}</option>
                     {% endfor %}
                 </select>
+                 <a id="edit_link" href="/add_mood" class="btn "><i class="fa fa-edit"></i></a>
                  <p style="margin-left: 5%; float: right;" ><input type="submit" onclick="sendMood()" class="btn submit_btn_custom" value="Submit"></p>
+                <!--  DOTS DISPLAY DIV  -->
+                 <div id="dot_list" style="background: rgba(0,0,0,0.3);margin-top: 2%; border-radius: 15px;"></div>
+                 <label id="type_label" style="color: cornsilk;" for="moods"></label>
             </div>
         </div>
     </div>
@@ -162,8 +169,74 @@
 
 <!--INPUT LISTENERS-->
 <script>
+    function stringInject(str, data) {
+           if (typeof str === 'string' && (data instanceof Array)) {
+
+        return str.replace(/({\d})/g, function(i) {
+            return data[i.replace(/{/, '').replace(/}/, '')];
+        });
+    } else if (typeof str === 'string' && (data instanceof Object)) {
+
+        if (Object.keys(data).length === 0) {
+            return str;
+        }
+
+        for (let key in data) {
+            return str.replace(/({([^}]+)})/g, function(i) {
+                let key = i.replace(/{/, '').replace(/}/, '');
+                if (!data[key]) {
+                    return i;
+                }
+
+                return data[key];
+            });
+        }
+    } else if (typeof str === 'string' && data instanceof Array === false || typeof str === 'string' && data instanceof Object === false) {
+
+            return str;
+    } else {
+
+        return false;
+    }
+        }
+
+
     var current_mood = moods[0];
     console.log(current_mood);
+    const element = document.getElementById("dot_list");
+    var colorList;
+
+    if(moods.length > 0){
+        colorList = current_mood.payload.color_list.split(',');
+        console.log("yeas")
+        document.getElementById("edit_link").href="/edit_mood/"+String(current_mood.id);
+        document.getElementById("type_label").innerHTML=current_mood.payload.loop;
+        loadChildList();
+    }
+
+
+
+
+    function clear_element(){
+        console.log(element.childElementCount)
+        var len_ = element.childElementCount
+        for (var i = 0; i < len_; i++){
+            element.removeChild(element.lastChild)
+        }
+    }
+
+    function loadChildList() {
+        console.log("loading color list")
+        clear_element();
+        for (var i = 0; i < colorList.length; i++) {
+            var para = document.createElement("span");
+            para.style = stringInject("height: 25px; width: 25px; background-color: {color};" +
+                " border-radius: 50%; display: inline-block; margin: 5px; margin-bottom: 0px;",
+                {color: colorList[i]});
+            element.appendChild(para);
+        }
+    }
+
 
     document.addEventListener('DOMContentLoaded', () => {
         document
@@ -189,7 +262,11 @@
              if(moods[i].id == moods_id){
                 current_mood = moods[i];
                 console.log(current_mood);
-                 break;
+                colorList = current_mood.payload.color_list.split(',');
+                document.getElementById("edit_link").href="/edit_mood/"+String(current_mood.id);
+                document.getElementById("type_label").innerHTML=current_mood.payload.loop;
+                loadChildList();
+                break;
              }
          }
       }
