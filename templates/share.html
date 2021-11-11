@@ -1,0 +1,21 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<div class="registration_block" >
+  <div class="registration_center">
+      {% include 'includes/_messages.html' %}
+      <a href="/dashboard" class="btn btn-default "><i class="fa fa-dashboard"></i></a>
+  <h1>Share with: </h1>
+  {% from "includes/_formhelpers.html" import render_field %}
+      <form method="POST" action="">
+        <div class="form-group">
+          {{render_field(form.username, class_="form-control")}}
+        </div>
+        <p style="margin-bottom: 20px" ><input type="submit" class="btn submit_btn_custom" value="Submit"></p>
+      </form>
+    </div>
+ </div>
+<!--<a href="/dashboard" class="btn submit_btn_custom" style="float: left; margin-left: 50%;">Back</a>-->
+{% endblock %}<td><a href="edit_device/{{device.id}}" class="btn submit_btn_custom pull-right">Connect</a></td>

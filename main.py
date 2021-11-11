@@ -56,6 +56,7 @@ class User(db.Model):
     username = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(125))
     isActive = db.Column(db.BOOLEAN)
+    shared_devices_ids = db.Column(db.String(50))
 
     def __init__(self, name, email, username, password, isActive):
         self.name = name
@@ -63,12 +64,13 @@ class User(db.Model):
         self.username = username
         self.password = password
         self.isActive = isActive
+        self.shared_devices_ids = ""
 
 
 # User Schema
 class UserSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'name', 'email', 'username', 'password', 'isActive')
+        fields = ('id', 'name', 'email', 'username', 'password', 'isActive', 'shared_devices_ids')
 
 
 # Init schema
@@ -192,14 +194,20 @@ def login():
 def dashboard():
     user_name = session['username']
     owner = db.session.query(User).filter_by(username=user_name).first()
+    # my devices
     device_list = db.session.query(Device).filter_by(owner_id=owner.id).all()
+
+    # shared devices
+    shared_devices_ids = owner.shared_devices_ids.split(",")
+    for shared_id in shared_devices_ids:
+        dev = db.session.query(Device).filter_by(owner_id=shared_id).first()
+        if dev is not None:
+            device_list.append(dev)
+
     device_list_js = serialize_device(device_list)
     mood_list = db.session.query(Mood).filter_by(owner_id=owner.id).all()
-    if len(device_list) > 0:
-        return render_template('dashboard.html', devicelist=device_list, moodList=mood_list, deviceListJS=device_list_js)
-    else:
-        msg = "no devices"
-        return render_template('dashboard.html', msg=msg)
+
+    return render_template('dashboard.html', devicelist=device_list, moodList=mood_list, deviceListJS=device_list_js)
 
 
 @app.route("/edit_device/<string:id>", methods=['GET', 'POST'])
@@ -243,11 +251,22 @@ def edit_connection_key(id):
 @app.route("/delete_device/<string:id>", methods=['POST'])
 @is_logged_in
 def delete_device(id):
+    user_name = session['username']
+    owner = db.session.query(User).filter_by(username=user_name).first()
     device = db.session.query(Device).get(id)
-    db.session.delete(device)
-    db.session.commit()
+    # if owner then delete
+    if device.owner_id == owner.id:
+        db.session.delete(device)
+        db.session.commit()
+        flash('Device successfully deleted', 'success')
+    # if shared, remove from list
+    else:
+        shared_devices_ids_list = owner.shared_devices_ids.split(",")
+        shared_devices_ids_list = [x for x in shared_devices_ids_list if x != id]
+        owner.shared_devices_ids = ",".join(shared_devices_ids_list)
+        db.session.commit()
+        flash('Device successfully removed from your list', 'success')
 
-    flash('Device successfully deleted', 'success')
     return redirect(url_for('dashboard'))
 
 
@@ -352,10 +371,26 @@ def add_mood():
             db.session.add(new_mood)
             db.session.commit()
 
+            session.pop('_flashes', None)
             flash('New mood successfully added', 'success')
             return redirect(url_for('dashboard'))
         else:
-            flash('Provide mood name', 'success')
+            session.pop('_flashes', None)
+            one_ = False
+            two_ = False
+            if len(request.form.get('name')) == 0:
+                msg_ = "Provide mood name"
+                one_ = True
+
+            if len(request.form.get('colorList')) == 0:
+                msg_ = "Color list cannot be empty"
+                two_ = True
+            if one_ and two_:
+                msg_ = "Provide mood name and color list"
+
+            flash(msg_, 'danger')
+
+
             return render_template('mood_creator.html', data=data)
 
     data = {'hexa': "#911abc"}
@@ -378,6 +413,31 @@ def confirm_email(token):
     db.session.commit()
     flash('Your email is confirmed you can now logg in', 'success')
     return redirect(url_for('login'))
+
+
+@app.route('/share/<string:id>', methods=['GET', 'POST'])
+def share_device(id):
+    form = RegisterForm(request.form)
+    if request.method == 'POST':
+        user_2_share = db.session.query(User).filter_by(username=form.username.data).first()
+        if user_2_share is not None:
+            if user_2_share.shared_devices_ids is not None:
+                shared_devices_ids_list = user_2_share.shared_devices_ids.split(",")
+            else:
+                shared_devices_ids_list = []
+
+            if id not in shared_devices_ids_list:
+                shared_devices_ids_list.append(id)
+            user_2_share.shared_devices_ids = ",".join(shared_devices_ids_list)
+            db.session.commit()
+            session.pop('_flashes', None)
+            flash('Device successfully shared with {}'.format(form.username.data), 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            session.pop('_flashes', None)
+            flash('user not found', 'danger')
+
+    return render_template('share.html', form=form)
 
 
 if __name__ == '__main__':

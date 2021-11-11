@@ -65,6 +65,7 @@
             <td>{{device.registration_date}}</td>
             <td style="text-align: center">Connecting...</td>
             <td><a href="color/{{device.id}}" class="btn btn-info pull-right">Color</a></td>
+            <td><a href="share/{{device.id}}" class="btn btn-primary pull-right">Share</a></td>
             <td><a href="edit_device/{{device.id}}" class="btn submit_btn_custom pull-right">Connect</a></td>
             <td class="text-center"><a href="edit_device/{{device.id}}" class="btn btn-default "><i class="fa fa-edit"></i></a></td>
             <td>
@@ -81,9 +82,15 @@
   <hr>
 </div>
 
+<div style="position: absolute; bottom: 0; right: 0; margin-right: 5%">
+  {% include 'includes/_messages.html' %}
+</div>
+
+
 
 <script>
-  var devices = JSON.parse('{{ deviceListJS | tojson | safe}}');
+  try {var devices = JSON.parse('{{ deviceListJS | tojson | safe}}');}
+  catch{console.log("no devices");}
   console.log(devices)
   var myTable = document.getElementById('deviceTable');
   var yyy;
