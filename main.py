@@ -64,7 +64,7 @@ class User(db.Model):
         self.username = username
         self.password = password
         self.isActive = isActive
-        self.shared_devices_ids = ""
+        self.shared_devices_ids = "0"
 
 
 # User Schema
