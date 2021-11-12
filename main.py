@@ -200,7 +200,7 @@ def dashboard():
     # shared devices
     shared_devices_ids = owner.shared_devices_ids.split(",")
     for shared_id in shared_devices_ids:
-        dev = db.session.query(Device).filter_by(owner_id=shared_id).first()
+        dev = db.session.query(Device).filter_by(id=int(shared_id)).first()
         if dev is not None:
             device_list.append(dev)
 
@@ -263,6 +263,8 @@ def delete_device(id):
     else:
         shared_devices_ids_list = owner.shared_devices_ids.split(",")
         shared_devices_ids_list = [x for x in shared_devices_ids_list if x != id]
+        if len(shared_devices_ids_list) == 0:
+            shared_devices_ids_list.append("0")
         owner.shared_devices_ids = ",".join(shared_devices_ids_list)
         db.session.commit()
         flash('Device successfully removed from your list', 'success')
@@ -426,7 +428,9 @@ def share_device(id):
             else:
                 shared_devices_ids_list = []
 
-            if id not in shared_devices_ids_list:
+            # check if device already there or user is the owner
+            if id not in shared_devices_ids_list and \
+                int(user_2_share.id) != int(db.session.query(Device).filter_by(id=int(id)).first().owner_id):
                 shared_devices_ids_list.append(id)
             user_2_share.shared_devices_ids = ",".join(shared_devices_ids_list)
             db.session.commit()
