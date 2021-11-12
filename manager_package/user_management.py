@@ -17,6 +17,14 @@ class RegisterForm(Form):
     confirm = PasswordField('Confirm Password')
 
 
+class ResetForm(Form):
+    password = PasswordField('Password', [
+        validators.DataRequired(),
+        validators.EqualTo('confirm', message='Passwords do not match')
+    ])
+    confirm = PasswordField('Confirm Password')
+
+
 def user_registration(s, mail, form, db):
     if request.method == 'POST' and form.validate():
         name = form.name.data
@@ -25,15 +33,11 @@ def user_registration(s, mail, form, db):
         password = sha256_crypt.encrypt(str(form.password.data))
 
         new_user = User(name, email, username, password, isActive=False)
-
         # sending email
         email = form.email.data
         token = s.dumps(email, salt='email-confirm')
-
         msg = Message('Confirm Email', sender='hal.home.and.led@gmail.com', recipients=[email])
-
         link = url_for('confirm_email', token=token, _external=True)
-
         msg.body = 'This link is active for 48 hours: {} '.format(link)
 
         try:
@@ -85,3 +89,20 @@ def user_log_out(session):
     session.clear()
     flash('You are now logged out', 'info')
     return redirect(url_for('login'))
+
+
+def user_update_password(form, user, db):
+    if request.method == 'POST' and form.validate():
+        user.password = sha256_crypt.encrypt(str(form.password.data))
+        db.session.commit()
+        flash('You can now login using new password', 'success')
+        return True
+    return False
+
+
+def user_reset_password(s, mail, email):
+    token = s.dumps(email, salt='reset-password')
+    msg = Message('Reset Password', sender='hal.home.and.led@gmail.com', recipients=[email])
+    link = url_for('update_password', token=token, _external=True)
+    msg.body = 'This link is active for 48 hours: {} '.format(link)
+    mail.send(msg)

@@ -440,6 +440,41 @@ def share_device(id):
     return render_template('share.html', form=form)
 
 
+@app.route('/update_password/<token>', methods=['GET', 'POST'])
+def update_password(token):
+    try:
+        email = s.loads(token, salt='reset-password', max_age=72800)
+        user = db.session.query(User).filter(User.email.endswith(email)).first()
+        form = ResetForm(request.form)
+        if user_update_password(form, user, db):
+            return redirect(url_for('login'))
+        return render_template('edit_password.html', form=form, user=user.username)
+
+    except SignatureExpired:
+        flash('The token is expired! Pleas restart your password again', 'danger')
+        return redirect(url_for('login'))
+
+
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_password():
+    form = RegisterForm(request.form)
+    if request.method == 'POST':
+        user = db.session.query(User).filter(User.email.endswith(form.email.data)).first()
+        if user is not None:
+            session.pop('_flashes', None)
+            try:
+                user_reset_password(s, mail=mail, email=form.email.data)
+                flash('Email sent to address {}'.format(form.email.data), 'success')
+                return redirect(url_for('login'))
+            except Exception as e:
+                flash('Some error accrued please try again. Error: {}'.format(str(e)), 'warning')
+        else:
+            session.pop('_flashes', None)
+            flash('wrong email', 'danger')
+
+    return render_template('reset_password.html', form=form)
+
+
 if __name__ == '__main__':
     # socketio.run(app)
     app.config['SESSION_TYPE'] = 'filesystem'
