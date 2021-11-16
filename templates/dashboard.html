@@ -2,11 +2,15 @@
 {% block body %}
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<!--MOOD TABLE-->
+<script src="https://kit.fontawesome.com/4e38e38ca0.js" crossorigin="anonymous"></script>
+<!--HEAD-->
 <h1>Dashboard <small> Welcome {{session.username}}</small></h1>
+
+
+<!--MOOD TABLE-->
 <div>
   <hr>
-    <h3 type="button" class="collapsible">Moods  <a class="btn btn-success pull-right" href="/add_mood"> Add</a></h3>
+    <h3 type="button" class="collapsible">Moods <i class='fas fa-angle-down rotate' style='font-size:24px'></i> <a class="btn btn-success pull-right" href="/add_mood"> Add</a></h3>
     <div class="content">
         <table class="table table-striped">
       <tr>
@@ -26,7 +30,7 @@
           <td>
             <form action="{{url_for('delete_mood', id=mood.id)}}" method="post">
               <input type="hidden" name="_method" value="DELETE">
-              <button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i></button>
+              <button type="submit" onclick="return confirm('Are you sure you want to delete This mood?')" class="btn btn-danger"><i class="fa fa-trash"></i></button>
             </form>
           </td>
         </tr>
@@ -41,7 +45,7 @@
 <!--DEVICE TABLE-->
 <div>
   <hr>
-    <h3 type="button" class="collapsible">Devices <a class="btn btn-success pull-right" href="/add_device"> Add</a></h3>
+    <h3 type="button" class="collapsible">Devices <i class='fas fa-angle-down rotate' style='font-size:24px'></i><a class="btn btn-success pull-right" href="/add_device"> Add</a></h3>
     <div class="content">
       <table id="deviceTable" class="table table-striped">
         <tr>
@@ -71,7 +75,7 @@
             <td>
               <form action="{{url_for('delete_device', id=device.id)}}" method="post">
                 <input type="hidden" name="_method" value="DELETE">
-                <button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i></button>
+                <button type="submit" onclick="return confirm('Are you sure you want to delete this Device?')" class="btn btn-danger"><i class="fa fa-trash"></i></button>
               </form>
             </td>
 
@@ -170,18 +174,29 @@
 
 <script>
   var coll = document.getElementsByClassName("collapsible");
-  var i;
-  for (i = 0; i < coll.length; i++) {
-    coll[i].addEventListener("click", function() {
-      this.classList.toggle("active");
-      var content = this.nextElementSibling;
-      if (content.style.display === "block") {
-        content.style.display = "none";
-      } else {
-        content.style.display = "block";
-      }
+  var arrows = document.getElementsByClassName("fas fa-angle-down rotate");
+  var init = true;
+  for (var i = 0; i < coll.length; i++) {
+      if(init){coll[i].number_ = i}
+      console.log(i)
+      coll[i].addEventListener("click", function() {
+        arrows[this.number_].classList.toggle("down");
+        this.classList.toggle("active");
+        var content = this.nextElementSibling;
+        if (content.style.display === "block") {
+          content.style.display = "none";
+        } else {
+          content.style.display = "block";
+        }
+      });
+  }
+  init = false;
+  for (var j = 0; j < arrows.length; j++) {
+    arrows[j].addEventListener("click", function() {
+      this.classList.toggle("down");
     });
   }
+
 </script>
 <style>
   .collapsible {
@@ -205,6 +220,19 @@
     display: none;
     overflow: hidden;
   }
+
+  .rotate {
+      -moz-transition: all .5s linear;
+      -webkit-transition: all .5s linear;
+      transition: all .5s linear;
+  }
+
+  .rotate.down {
+      -moz-transform:rotate(180deg);
+      -webkit-transform:rotate(180deg);
+      transform:rotate(180deg);
+  }
+
 </style>
 
 
