@@ -307,6 +307,7 @@ def edit_mood(id):
 
 
 @app.route('/color/<string:id>', methods=['GET', 'POST'])
+@is_logged_in
 def color(id):
     user_name = session['username']
     owner = db.session.query(User).filter_by(username=user_name).first()
@@ -342,7 +343,6 @@ def add_device():
         db.session.add(new_device)
         db.session.commit()
         flash('New device successfully added', 'success')
-
         return redirect(url_for('dashboard'))
     return render_template('add_device.html', form=form)
 
@@ -360,15 +360,14 @@ def add_mood():
     user_name = session['username']
     owner = db.session.query(User).filter_by(username=user_name).first()
     if request.method == "POST":
-        data = {'hexa': request.form.get('colorChange')}
+        color_change = request.form.get('colorChange')
+        name = request.form.get('name')
+        color_list = request.form.get('colorList')
+        brightness = request.form.get('brightness')
+        speed = request.form.get('speed')
+        loop = request.form.get('drone')
         if len(request.form.get('name')) != 0 and len(request.form.get('colorList')) != 0:
-            name = request.form.get('name')
-            color_list = request.form.get('colorList')
-            brightness = request.form.get('brightness')
-            speed = request.form.get('speed')
-            loop = request.form.get('drone')
             payload = {"color_list": color_list, "brightness": brightness, "speed": speed, "loop": loop}
-
             new_mood = Mood(name, json.dumps(payload), owner.id)
             db.session.add(new_mood)
             db.session.commit()
@@ -391,11 +390,14 @@ def add_mood():
                 msg_ = "Provide mood name and color list"
 
             flash(msg_, 'danger')
+            print(color_change)
+            data = {'hexa': color_change, "name": name, "color_list": color_list,
+                    "brightness": brightness, "speed": speed, "loop": loop}
+            return render_template('mood_creator.html', data=data, name=name, color_list=color_list,
+                                   brightness=brightness, speed=speed, loop=loop)
 
-
-            return render_template('mood_creator.html', data=data)
-
-    data = {'hexa': "#911abc"}
+    data = {'hexa': "#911abc", "name": "", "color_list": "",
+            "brightness": "", "speed": "", "loop": ""}
     return render_template('mood_creator.html', data=data)
 
 
@@ -418,6 +420,7 @@ def confirm_email(token):
 
 
 @app.route('/share/<string:id>', methods=['GET', 'POST'])
+@is_logged_in
 def share_device(id):
     form = RegisterForm(request.form)
     if request.method == 'POST':
@@ -430,7 +433,7 @@ def share_device(id):
 
             # check if device already there or user is the owner
             if id not in shared_devices_ids_list and \
-                int(user_2_share.id) != int(db.session.query(Device).filter_by(id=int(id)).first().owner_id):
+                    int(user_2_share.id) != int(db.session.query(Device).filter_by(id=int(id)).first().owner_id):
                 shared_devices_ids_list.append(id)
             user_2_share.shared_devices_ids = ",".join(shared_devices_ids_list)
             db.session.commit()

@@ -112,14 +112,14 @@
         }
 
         var colorChange;
-        var color = JSON.parse('{{ data | tojson | safe}}');
-        var initialColor = color.hexa;
+        var datum = JSON.parse('{{ data | tojson | safe}}');
+        var initialColor = datum.hexa;
         var colorList = [];
         var colorList_stringify;
         colorArr = document.querySelector("#colorList");
         const element = document.getElementById("dot_list");
         var colorChildList = [];
-
+        document.body.style.backgroundColor = initialColor;
 
         window.onload = function(){
             document.body.style.backgroundColor = initialColor;
@@ -173,6 +173,40 @@
             const b = document.getElementById("brightness").value;
             document.getElementById("brightness_label").innerHTML = "Brightness: "+b;
         }
+    </script>
+
+    <!--  reload -->
+    <script>
+        if(datum.name != ""){
+            document.getElementById("name").value = datum.name;
+        }
+        if (datum.speed != ""){
+            document.getElementById("speed").value = datum.speed;
+            document.getElementById("brightness").value = datum.brightness;
+        }
+        if (datum.loop != ""){
+            radiobtn = document.getElementById(datum.loop);
+            radiobtn.checked = true;
+        }
+        if (datum.color_list != ""){
+            var colorList_loaded = datum.color_list.split(',');
+            for (var i = 0; i < colorList_loaded.length; i++){
+                var para = document.createElement("span");
+                    para.style=stringInject("height: 25px; width: 25px; background-color: {color};" +
+                    " border-radius: 50%; display: inline-block; margin: 5px; margin-bottom: 0px;",
+                        { color: colorList_loaded[i]});
+                console.log(colorList_loaded[i]);
+                colorChildList.push(para);
+                element.appendChild(para);
+                colorList.push(colorList_loaded[i]);
+                colorList_stringify = colorList.toString();
+                colorArr.value = colorList_stringify;
+            }
+        }
+
+
+
+
     </script>
 
 
