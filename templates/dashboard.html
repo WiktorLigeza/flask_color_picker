@@ -118,6 +118,7 @@
 
     // Listen for messages
     socket.addEventListener('message', function (event) {
+      console.log(event.data)
         if(event.data.slice(0, 4) == "pong"){
           const obj = JSON.parse(event.data.slice(4))
           var index = search(devices, obj.tag)
@@ -149,8 +150,9 @@
 
   const ping = () => {
     for(const device_ in devices){
-      var msg_ping = "isactive "+ devices[device_].tag;
-      yyy.send(msg_ping);
+      const data_to_send = { head: 'isactive', "TAG":devices[device_].tag};
+      const data_in_json = JSON.stringify(data_to_send);
+      yyy.send(data_in_json);
     }
   }
 

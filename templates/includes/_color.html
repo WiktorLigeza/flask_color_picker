@@ -85,12 +85,14 @@
         const brightness = document.getElementById("brightness").value;
         const loop = document.querySelector('input[name="drone"]:checked').value;
         const payload = {color: colorChange.value, brightness: brightness, speed: speed, loop:loop}
-        const data_to_send = { user: '{{session.username}}', device_tag: '{{ device.tag }}', type: "single", payload: payload };
+        const data_to_send = { head: 'set', user: '{{session.username}}',
+            TAG: '{{ device.tag }}', type: "single", payload: payload };
         const data_in_json = JSON.stringify(data_to_send);
         socket.send(data_in_json);
     }
     const sendMood = () => {
-        const data_to_send = { user: '{{session.username}}', device_tag: '{{ device.tag }}', type: "mood", payload: current_mood.payload };
+        const data_to_send = { head: 'set', user: '{{session.username}}',
+            TAG: '{{ device.tag }}', type: "mood", payload: current_mood.payload };
         const data_in_json = JSON.stringify(data_to_send);
         socket.send(data_in_json);
     }

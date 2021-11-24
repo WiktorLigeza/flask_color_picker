@@ -225,7 +225,8 @@ def edit_device(id):
         device.tag = request.form['tag']
         db.session.commit()
         flash('Device successfully updated', 'success')
-        loop = asyncio.new_event_loop().run_until_complete(sm.update_tag(device.tag, device.name, old_tag))
+        loop = asyncio.new_event_loop().run_until_complete(sm.update_tag(device.connection_key, device.tag,
+                                                                         device.name, old_tag))
         asyncio.set_event_loop(loop)
 
         return redirect(url_for('dashboard'))
@@ -236,14 +237,19 @@ def edit_device(id):
 @is_logged_in
 def edit_connection_key(id):
     device = db.session.query(Device).get(id)
+    old_key = device.connection_key
     print(id)
     form = ResetConnectionKey(request.form)
 
     if request.method == 'POST' and form.validate():
         device.connection_key = sha256_crypt.encrypt(str(form.connection_key.data))
         db.session.commit()
-        flash('Device successfully updated', 'success')
+        loop = asyncio.new_event_loop().run_until_complete(sm.update_connection_key(old_key,
+                                                                                    device.connection_key,
+                                                                                    device.tag))
+        asyncio.set_event_loop(loop)
 
+        flash('Device successfully updated', 'success')
         return redirect(url_for('dashboard'))
     return render_template('edit_connection_key.html', form=form)
 

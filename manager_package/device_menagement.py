@@ -1,5 +1,5 @@
 from passlib.hash import sha256_crypt
-from wtforms import Form, StringField,PasswordField, validators
+from wtforms import Form, StringField, PasswordField, validators
 
 
 # Register Form Class
@@ -25,7 +25,6 @@ class ResetConnectionKey(Form):
         validators.EqualTo('confirm', message='connection key do not match')
     ])
     confirm = PasswordField('Confirm connection key')
-
 
 # def add_device(form, db, request):
 #     if request.method == 'POST' and form.validate():
