@@ -8,10 +8,8 @@ const wsServer = new WebSocket.Server({
 
 var id = 0;
 var id_den = 0;
-var lookup = {};
-var all = {};
-var clients_tag = [];
-var is_active = [];
+var clients = [];
+
 
 Object.size = function(obj) {
   var size = 0,
@@ -23,82 +21,94 @@ Object.size = function(obj) {
 };
 
 wsServer.on('connection', function (socket) {
+    socket.on('close', function (socket){
+      console.log("Connection closed")
+    });
 
     socket.on('message', function (msg) {
-      if (msg.slice(0, 3) == "TAG"){
-          console.log(msg)
+      const msg_obj = JSON.parse(msg);
+
+      // TAG HANDLER
+      if (msg_obj.head == "first_connection"){
           var ib = socket.id
-          var index = search(clients_tag, msg.slice(3));
-          if(index != -1){
-            console.log(msg.slice(3) + " - just reconnected, id: "+ index);
-            lookup[index] = socket;
-            socket.id = index;
+          var client = search(clients, msg_obj.TAG);
+          if(client != null){
+            console.log(client.clients_tag + " - just reconnected, id: "+ client.id);
+            client.socket = socket;
+            client.timeout_terator = 0;
           }
           else{
+            var client = new Object();
             socket.id = id;
-            lookup[socket.id ] = socket;
-            clients_tag[socket.id] = msg.slice(3);
-            console.log(msg.slice(3) + " - just connected, with id: "+ id);
+            client.id = id;
+            client.socket = socket;
+            client.timeout_terator = 0;
+            client.clients_tag = msg_obj.TAG;
+            console.log(client.clients_tag + " - just connected, with id: "+ client.id);
             id++;
+            clients.push(client)
           }
         }
-      else if(msg.slice(0, 4) == "pong"){
-         var index = search(clients_tag, msg.slice(5));
-         if(index != -1){
-           console.log("active -> id: ", lookup[index].id, "|| TAG: ", clients_tag[index]);
-           is_active[index] = true;
+
+      // PONG HANDLER
+      else if(msg_obj.head == "pong"){
+         var client = search(clients, msg_obj.TAG);
+         if(client != null){
+           console.log("active -> id: ", client.id, "|| TAG: ", client.clients_tag);
+           client.is_active = true;
+           client.timeout_terator = 0;
          }
         }
-        else if(msg.slice(0, 8) == "isactive"){
-         var index = search(clients_tag, msg.slice(9));
-         let load = {"tag":msg.slice(9), "isActive":false};
-         if(index != -1){
-           load.isActive = is_active[index];
+
+      // IS ACTIVE HANDLER
+      else if(msg_obj.head == "isactive"){
+         var client = search(clients, msg_obj.TAG);
+         let load = {"tag":msg_obj.TAG, "isActive":false};
+         if(client != null){
+           load.isActive = client.is_active; // TODO FIX
            }
-          var msg_pog = "pong "+JSON.stringify(load);;
+          var msg_pog = "pong "+JSON.stringify(load);
           socket.send(msg_pog)
         }
 
-       else{
-         const msg_obj = JSON.parse(msg);
-         console.log(msg)
-         var type;
-         if(msg_obj.color != undefined)
-           {
-             console.log("from "+  msg_obj.user + " to " + msg_obj.device_tag + " || color value: " +  msg_obj.color);
-             type = 1;
-           }
-         if(msg_obj.NEW_TAG != undefined)
-           {
-             console.log("old tag: " +  msg_obj.device_tag + " device name: " + msg_obj.NAME + " || new tag: " +  msg_obj.NEW_TAG);
-             type = 2;
-           }
-
-         var online = false;
-         var index = search(clients_tag, msg_obj.device_tag);
-         if (index != -1){
-           console.log("sending to client with id: ", lookup[index].id, "|| TAG: ", clients_tag[index]);
-           lookup[index].send(msg);
-           online = true;
+      // SET HANDLER
+      else if(msg_obj.head == "set"){
+         var client = search(clients, msg_obj.TAG);
+         if (client != null){
+           console.log("sending to client with id: ", client.id, "|| TAG: ", client.clients_tag);
+           client.socket.send(msg);
          }
-         if (!online){
+         else{
            console.log("client is offline");
          }
        }
     });
 });
 
-
+//https://stackoverflow.com/questions/50876766/how-to-implement-ping-pong-request-for-websocket-connection-alive-in-javascript
 
 
 /// functions
 const ping = () => {
-    for (var i = 0; i < Object.size(lookup); i++){
-      lookup[i].send("ping");
-      is_active[i]=false;
-      console.log('ping', clients_tag[i]);
-   }
+  clients.forEach(function_ping);
 }
+
+
+function function_ping(client, index, arr){
+  client.is_active=false;
+  if(client.timeout_terator >= 4){
+    console.log("dropping client: ", client.clients_tag);
+  }
+  else{
+    try{
+      client.timeout_terator+=1;
+      client.socket.send('{"type": "ping"}');
+      console.log('ping', client.clients_tag, client.timeout_terator);
+    }
+    catch{}
+  }
+}
+
 
 function timeout() {
   setTimeout(function () {
@@ -106,14 +116,17 @@ function timeout() {
     timeout();
   }, 5000);}
 
+
 function search(arr, what) {
-  for (var i = 0; i < Object.size(arr); i++){
-   if(arr[i] == what){
-     return i;
-    }
-  }
-  return -1;
+  var output = null;
+  arr.forEach((client, index, arr)=>{
+              if(client.clients_tag== what){
+                output = client;
+              }
+            });
+  return output
 }
+
 
 timeout();
 console.log( (new Date()) + " Server is listening on port " + PORT);
