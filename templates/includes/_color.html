@@ -84,7 +84,7 @@
 
     // Send a msg to the websocket
     const sendSingle = () => {
-        if (!isOpen(socket)){
+        try{
             const speed = document.getElementById("speed").value;
             const brightness = document.getElementById("brightness").value;
             const loop = document.querySelector('input[name="drone"]:checked').value;
@@ -94,7 +94,7 @@
             const data_in_json = JSON.stringify(data_to_send);
             socket.send(data_in_json);
         }
-        else{
+        catch{
             socket = new WebSocket('wss://hal9000-color-picker-websockserver.glitch.me');
             console.log("reconnecting")
         }
@@ -102,7 +102,7 @@
     }
 
     const sendMood = () => {
-        if (!isOpen(socket)) {
+        try {
             const data_to_send = {
                 head: 'set', user: '{{session.username}}',
                 TAG: '{{ device.tag }}', type: "mood", payload: current_mood.payload
@@ -110,7 +110,7 @@
             const data_in_json = JSON.stringify(data_to_send);
             socket.send(data_in_json);
         }
-        else{
+        catch{
             socket = new WebSocket('wss://hal9000-color-picker-websockserver.glitch.me');
             console.log("reconnecting")
         }
