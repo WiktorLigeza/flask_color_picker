@@ -11,22 +11,69 @@
             height:100%;
             width:100%;
         }
-        /*body{*/
-        /*    background-image:url("../../static/RGB_LED.png");*/
-        /*    background-position:center center;*/
-        /*    background-repeat:no-repeat;*/
-        /*}*/
-
         #singleColorControls{
-            height:70px;
-            width:100%;
+            background: rgba(0,0,0,0.3);
+            margin: auto;
+            width: 60%;
+            height: 55%;
             padding:20px;
         }
         #moodControls{
-            height:70px;
-            width:100%;
+            background: rgba(0,0,0,0.3);
+            margin: 10% auto auto;
+            width: 60%;
+            height: 55%;
             padding:20px;
         }
+        @media only screen and (max-device-width: 900px) {
+            #singleColorControls{
+                background: rgba(0,0,0,0.3);
+                margin: auto;
+                width: 110%;
+                height: 100%;
+            }
+            #moodControls{
+                background: rgba(0,0,0,0.3);
+                margin: 10% auto auto;
+                width: 110%;
+                height: 100%;
+            }
+            p{
+                font-size: 150%;
+            }
+            label{
+                font-size: 150%;
+            }
+            #sngl_btn{
+                transform: scale(1.5);
+                margin-top: 30%;
+            }
+            #mood_btn{
+                transform: scale(1.5);
+            }
+            #moods{
+               transform: scale(1.2);
+                margin-left: 5px;
+            }
+            #edit_link{
+                transform: scale(2);
+                margin-left: 5px;
+            }
+            .custom-select{
+                font-size: 120%;
+            }
+            #colorChange{
+                width: 100px;
+                height: 50px;
+            }
+             input[type='radio'] {
+                 transform: scale(2);
+             }
+            label[type='radio_label'] {
+                 margin-left: 15px;
+             }
+        }
+
     </style>
     <script>
         var colorChange;
@@ -127,7 +174,7 @@
 
 <body>
     <!-- SINGLE COLOR DIV-->
-    <div id="singleColorControls" style="background: rgba(0,0,0,0.3); margin: auto; width: 60%; height: 55%;">
+    <div id="singleColorControls">
         <div>
             <!--  HEADER -->
             <h1 style="margin-top: 0px;"> Select STEADY COLOR</h1>
@@ -137,7 +184,7 @@
                 <input  style="margin-bottom: 5px;" type="range" min="1" max="100" value="50" class="slider" id="speed" oninput="speed_slider()" name="speed">
 
                 <!--  BRIGHTNESS SLIDER  -->
-                <p style="margin-bottom: 0px; color: cornsilk; " id="brightness_label"> Brightness:</p>
+                <p style="margin-bottom: 0px; color: cornsilk; " id="brightness_label"> Change Amplitude:</p>
                 <input style="margin-bottom: 5px;"  type="range" min="1" max="100" value="50" class="slider" id="brightness" oninput="brightness_slider()" name="brightness">
 
                 <!--  RADIO BUTTONS  -->
@@ -146,15 +193,15 @@
                         <div class="row">
                             <div style="float: left; width: 33.33%;">
                                 <input style="margin-left: 50%" type="radio" id="steady" name="drone" value="steady" checked>
-                                <label for="steady">Steady</label>
+                                <label type="radio_label" for="steady">Steady</label>
                             </div>
                             <div style="float: left; width: 33.33%;">
                                 <input style="margin-left: 50%" type="radio" id="dimming" name="drone" value="dimming">
-                                <label for="dimming">Dimming</label>
+                                <label type='radio_label' for="dimming">Dimming</label>
                             </div>
                             <div style="float: left; width: 33.33%;">
                                 <input style="margin-left: 50%" type="radio" id="sparks" name="drone" value="sparks">
-                                <label for="sparks">Sparks</label>
+                                <label type='radio_label' for="sparks">Sparks</label>
                             </div>
                         </div>
                     </div>
@@ -164,7 +211,7 @@
                 <input style="margin-bottom: 5px;" name="colorChange" type="color" value=colorChange.value id="colorChange">
 
                 <!--  SUBMIT BUTTON  -->
-                <p style="margin-left: 5%; float: right;" ><input type="submit" onclick="sendSingle()" class="btn submit_btn_custom" value="Submit"></p>
+                <p style="margin-left: 5%;  float: right;" ><input id="sngl_btn" type="submit" onclick="sendSingle()" class="btn submit_btn_custom" value="Submit"></p>
 
                 <!--  HIDDEN COLOR LIST  -->
                 <input style="margin-bottom: 5px;" type="hidden" name="colorList" id="colorList">
@@ -172,7 +219,7 @@
         </div>
     </div>
     <!-- MOOD DIV-->
-    <div id="moodControls" style="background: rgba(0,0,0,0.3); margin: auto; margin-top: 10%;  width: 60%; height: 55%;">
+    <div id="moodControls">
         <div >
             <!--  HEADER -->
             <h1 style="margin-top: 0px;"> Select Mood</h1>
@@ -185,7 +232,7 @@
                     {% endfor %}
                 </select>
                  <a id="edit_link" href="/add_mood" class="btn "><i class="fa fa-edit"></i></a>
-                 <p style="margin-left: 5%; float: right;" ><input type="submit" onclick="sendMood()" class="btn submit_btn_custom" value="Submit"></p>
+                 <p style="margin-left: 5%; float: right;" ><input id="mood_btn" type="submit" onclick="sendMood()" class="btn submit_btn_custom" value="Submit"></p>
                 <!--  DOTS DISPLAY DIV  -->
                  <div id="dot_list" style="background: rgba(0,0,0,0.3);margin-top: 2%; border-radius: 15px;"></div>
                  <label id="type_label" style="color: cornsilk;" for="moods"></label>
