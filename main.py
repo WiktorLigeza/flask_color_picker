@@ -193,6 +193,7 @@ def login():
 @is_logged_in
 def dashboard():
     user_name = session['username']
+    session['url'] = request.url
     owner = db.session.query(User).filter_by(username=user_name).first()
     # my devices
     device_list = db.session.query(Device).filter_by(owner_id=owner.id).all()
@@ -308,6 +309,8 @@ def edit_mood(id):
             mood.payload = json.dumps(payload)
             db.session.commit()
             flash('Device successfully updated', 'success')
+            if 'url' in session:
+                return redirect(session['url'])
             return redirect(url_for('dashboard'))
     return render_template('edit_mood.html', data={"name": name, "payload": json.loads(payload), 'hexa': "#911abc"})
 
@@ -320,6 +323,7 @@ def color(id):
     device = db.session.query(Device).get(id)
     mood_list = db.session.query(Mood).filter_by(owner_id=owner.id).all()
     mood_js = serialize_mood(mood_list)
+    session['url'] = request.url
 
     if request.method == "POST":
         backend_value = request.form.get('colorChange')
