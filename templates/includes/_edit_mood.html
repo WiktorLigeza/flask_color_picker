@@ -33,7 +33,7 @@
                 <input  style="margin-bottom: 5px;" type="range" min="1" max="100" value="50" class="slider" id="speed" oninput="speed_slider()" name="speed">
 
                 <!--  BRIGHTNESS SLIDER  -->
-                <p style="margin-bottom: 0px; color: cornsilk; " id="brightness_label"> Brightness:</p>
+                <p style="margin-bottom: 0px; color: cornsilk; " id="brightness_label"> Amplitude:</p>
                 <input style="margin-bottom: 5px;"  type="range" min="1" max="100" value="50" class="slider" id="brightness" oninput="brightness_slider()" name="brightness">
 
                 <!--  RADIO BUTTONS  -->
@@ -194,7 +194,7 @@
         }
         function brightness_slider() {
             const b = document.getElementById("brightness").value;
-            document.getElementById("brightness_label").innerHTML = "Brightness: "+b;
+            document.getElementById("brightness_label").innerHTML = "Amplitude: "+b;
         }
     </script>
 
