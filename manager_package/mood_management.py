@@ -1,5 +1,4 @@
-from passlib.hash import sha256_crypt
-from wtforms import Form, StringField,PasswordField, validators
+from wtforms import Form, StringField, validators
 
 
 # Register Form Class

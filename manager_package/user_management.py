@@ -3,6 +3,7 @@ from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from main import User, render_template, request, redirect, flash, url_for
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
+import uuid
 
 
 # Register Form Class
@@ -32,7 +33,7 @@ def user_registration(s, mail, form, db):
         username = form.username.data
         password = sha256_crypt.encrypt(str(form.password.data))
 
-        new_user = User(name, email, username, password, isActive=False)
+        new_user = User(str(uuid.uuid4()), name, email, username, password, isActive=False)
         # sending email
         email = form.email.data
         token = s.dumps(email, salt='email-confirm')

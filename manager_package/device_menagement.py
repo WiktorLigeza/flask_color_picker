@@ -1,11 +1,12 @@
 from passlib.hash import sha256_crypt
-from wtforms import Form, StringField, PasswordField, validators
+from wtforms import Form, StringField, PasswordField, validators, BooleanField
 
 
 # Register Form Class
 class DeviceForm(Form):
     name = StringField('Name', [validators.Length(min=1, max=50)])
     tag = StringField('Tag', [validators.Length(min=4, max=8)])
+    has_relay = BooleanField('Relay')
     connection_key = PasswordField('connection key', [
         validators.DataRequired(),
         validators.EqualTo('confirm', message='connection key do not match')
@@ -17,6 +18,7 @@ class DeviceFormUpdate(Form):
     name = StringField('Name', [validators.Length(min=1, max=50)])
     tag = StringField('Tag', [validators.Length(min=4, max=8)])
     id = StringField('Id')
+    has_relay = BooleanField('Relay')
 
 
 class ResetConnectionKey(Form):

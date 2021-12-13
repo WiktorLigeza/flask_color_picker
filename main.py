@@ -11,6 +11,7 @@ from itsdangerous import URLSafeTimedSerializer
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 from manager_package import socket_manager as sm
+import uuid
 
 ################################################ INIT
 connected = set()
@@ -51,14 +52,16 @@ s = URLSafeTimedSerializer(secret_key)
 # User Class/Model
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    UUID = db.Column(db.String(50))
     name = db.Column(db.String(100))
     email = db.Column(db.String(100), unique=True)
     username = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(125))
     isActive = db.Column(db.BOOLEAN)
-    shared_devices_ids = db.Column(db.String(50))
+    shared_devices_ids = db.Column(db.String(500))
 
-    def __init__(self, name, email, username, password, isActive):
+    def __init__(self, UUID, name, email, username, password, isActive):
+        self.UUID = UUID
         self.name = name
         self.email = email
         self.username = username
@@ -70,7 +73,7 @@ class User(db.Model):
 # User Schema
 class UserSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'name', 'email', 'username', 'password', 'isActive', 'shared_devices_ids')
+        fields = ('id', 'UUID', 'name', 'email', 'username', 'password', 'isActive', 'shared_devices_ids')
 
 
 # Init schema
@@ -83,23 +86,27 @@ users_schema = UserSchema(many=True)
 class Device(db.Model):
     # __bind_key__ = 'two'
     id = db.Column(db.Integer, primary_key=True)
+    UUID = db.Column(db.String(50))
     name = db.Column(db.String(50))
     tag = db.Column(db.String(100), unique=True)
     connection_key = db.Column(db.String(125))
     registration_date = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
     owner_id = db.Column(db.Integer)
+    has_relay = db.Column(db.Boolean)
 
-    def __init__(self, name, tag, connection_key, owner_id):
+    def __init__(self, UUID, name, tag, connection_key, owner_id, has_relay):
+        self.UUID = UUID
         self.name = name
         self.tag = tag
         self.connection_key = connection_key
         self.owner_id = owner_id
+        self.has_relay = has_relay
 
 
 # Device Schema
 class DeviceSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'name', 'tag', 'connection_key', 'registration_date', 'owners_id')
+        fields = ('id', 'UUID', 'name', 'tag', 'connection_key', 'registration_date', 'owners_id', "has_relay")
 
 
 # Init schema
@@ -110,11 +117,13 @@ devices_schema = DeviceSchema(many=True)
 class Mood(db.Model):
     # __bind_key__ = 'three'
     id = db.Column(db.Integer, primary_key=True)
+    UUID = db.Column(db.String(50))
     name = db.Column(db.String(50))
     payload = db.Column(db.String(10000))
-    owner_id = db.Column(db.Integer)
+    owner_id = db.Column(db.String(50))
 
-    def __init__(self, name, payload, owner_id):
+    def __init__(self, UUID, name, payload, owner_id):
+        self.UUID = UUID
         self.name = name
         self.payload = payload
         self.owner_id = owner_id
@@ -123,7 +132,7 @@ class Mood(db.Model):
 # Device Schema
 class MoodSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'name', 'payload', 'owner_id')
+        fields = ('id', 'UUID', 'name', 'payload', 'owner_id')
 
 
 # Init schema
@@ -155,7 +164,7 @@ def serialize_device(query_list):
     device_list_serializable = []
     for obj in query_list:
         device_list_serializable.append(
-            {"id": obj.id, "name": obj.name, "tag": obj.tag})
+            {"id": obj.id, "name": obj.name, "tag": obj.tag, "has_relay": obj.has_relay})
     return device_list_serializable
 
 
@@ -196,17 +205,17 @@ def dashboard():
     session['url'] = request.url
     owner = db.session.query(User).filter_by(username=user_name).first()
     # my devices
-    device_list = db.session.query(Device).filter_by(owner_id=owner.id).all()
+    device_list = db.session.query(Device).filter_by(owner_id=owner.UUID).all()
 
     # shared devices
     shared_devices_ids = owner.shared_devices_ids.split(",")
     for shared_id in shared_devices_ids:
-        dev = db.session.query(Device).filter_by(id=int(shared_id)).first()
+        dev = db.session.query(Device).filter_by(UUID=shared_id).first()
         if dev is not None:
             device_list.append(dev)
 
     device_list_js = serialize_device(device_list)
-    mood_list = db.session.query(Mood).filter_by(owner_id=owner.id).all()
+    mood_list = db.session.query(Mood).filter_by(owner_id=owner.UUID).all()
 
     return render_template('dashboard.html', devicelist=device_list, moodList=mood_list, deviceListJS=device_list_js)
 
@@ -214,7 +223,7 @@ def dashboard():
 @app.route("/edit_device/<string:id>", methods=['GET', 'POST'])
 @is_logged_in
 def edit_device(id):
-    device = db.session.query(Device).get(id)
+    device = db.session.query(Device).filter_by(UUID=id).first()
     form = DeviceFormUpdate(request.form)
     form.name.data = device.name
     form.tag.data = device.tag
@@ -237,7 +246,7 @@ def edit_device(id):
 @app.route("/edit_device/edit_connection_key/<string:id>", methods=['GET', 'POST'])
 @is_logged_in
 def edit_connection_key(id):
-    device = db.session.query(Device).get(id)
+    device = db.session.query(Device).filter_by(UUID=id).first()
     old_key = device.connection_key
     print(id)
     form = ResetConnectionKey(request.form)
@@ -260,9 +269,9 @@ def edit_connection_key(id):
 def delete_device(id):
     user_name = session['username']
     owner = db.session.query(User).filter_by(username=user_name).first()
-    device = db.session.query(Device).get(id)
+    device = db.session.query(Device).filter_by(UUID=id).first()
     # if owner then delete
-    if device.owner_id == owner.id:
+    if device.owner_id == owner.UUID:
         db.session.delete(device)
         db.session.commit()
         flash('Device successfully deleted', 'success')
@@ -282,7 +291,7 @@ def delete_device(id):
 @app.route("/delete_mood/<string:id>", methods=['POST'])
 @is_logged_in
 def delete_mood(id):
-    mood = db.session.query(Mood).get(id)
+    mood = db.session.query(Mood).filter_by(UUID=id).first()
     db.session.delete(mood)
     db.session.commit()
 
@@ -293,7 +302,7 @@ def delete_mood(id):
 @app.route("/edit_mood/<string:id>", methods=['GET', 'POST'])
 @is_logged_in
 def edit_mood(id):
-    mood = db.session.query(Mood).get(id)
+    mood = db.session.query(Mood).filter_by(UUID=id).first()
     name = mood.name
     payload = mood.payload
 
@@ -320,8 +329,8 @@ def edit_mood(id):
 def color(id):
     user_name = session['username']
     owner = db.session.query(User).filter_by(username=user_name).first()
-    device = db.session.query(Device).get(id)
-    mood_list = db.session.query(Mood).filter_by(owner_id=owner.id).all()
+    device = db.session.query(Device).filter_by(UUID=id).first()
+    mood_list = db.session.query(Mood).filter_by(owner_id=owner.UUID).all()
     mood_js = serialize_mood(mood_list)
     session['url'] = request.url
 
@@ -348,7 +357,7 @@ def add_device():
         tag = form.tag.data
         connection_key = sha256_crypt.encrypt(str(form.connection_key.data))
 
-        new_device = Device(name, tag, connection_key, owner.id)
+        new_device = Device(str(uuid.uuid4()), name, tag, connection_key, owner.UUID, has_relay=False)
 
         db.session.add(new_device)
         db.session.commit()
@@ -378,7 +387,7 @@ def add_mood():
         loop = request.form.get('drone')
         if len(request.form.get('name')) != 0 and len(request.form.get('colorList')) != 0:
             payload = {"color_list": color_list, "brightness": brightness, "speed": speed, "loop": loop}
-            new_mood = Mood(name, json.dumps(payload), owner.id)
+            new_mood = Mood(str(uuid.uuid4()), name, json.dumps(payload), owner.UUID)
             db.session.add(new_mood)
             db.session.commit()
 
@@ -443,7 +452,7 @@ def share_device(id):
 
             # check if device already there or user is the owner
             if id not in shared_devices_ids_list and \
-                    int(user_2_share.id) != int(db.session.query(Device).filter_by(id=int(id)).first().owner_id):
+                    user_2_share.UUID != db.session.query(Device).filter_by(UUID=id).first().owner_id:
                 shared_devices_ids_list.append(id)
             user_2_share.shared_devices_ids = ",".join(shared_devices_ids_list)
             db.session.commit()
@@ -498,14 +507,9 @@ if __name__ == '__main__':
     app.secret_key = secret_key
     app.run(debug=True)
 
-    
-    
-    
-    
-    
-    
-    
- 
+# TODO: id -> UUID standard, tag->UUID 6 digits
+
+
 # arr_x = []
 # arr_y = []
 # @app.route("/heatmap", methods=['GET', 'POST'])
