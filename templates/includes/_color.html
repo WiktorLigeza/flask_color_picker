@@ -177,7 +177,7 @@
     <div id="singleColorControls">
         <div>
             <!--  HEADER -->
-            <h1 style="margin-top: 0px;"> Select STEADY COLOR</h1>
+            <h1 style="margin-top: 0px;filter: invert(100%);"> Select Color</h1>
             <div>
                 <!--  SPEED SLIDER  -->
                 <p style="margin-bottom: 0px; color: cornsilk; " id="speed_label" > Change Speed: </p>
@@ -222,7 +222,7 @@
     <div id="moodControls">
         <div >
             <!--  HEADER -->
-            <h1 style="margin-top: 0px;"> Select Mood</h1>
+            <h1 style="margin-top: 0px;filter: invert(100%);"> Select Mood</h1>
             <div>
                 <input  name="colorChange_MOOD" type="hidden" value=colorChange.value id="colorChange_MOOD">
                 <label style="color: cornsilk;" for="moods">Choose Mood:</label>
@@ -283,7 +283,7 @@
     if(moods.length > 0){
         colorList = current_mood.payload.color_list.split(',');
         console.log("yeas")
-        document.getElementById("edit_link").href="/edit_mood/"+String(current_mood.id);
+        document.getElementById("edit_link").href="/edit_mood/"+String(current_mood.UUID);
         document.getElementById("type_label").innerHTML=current_mood.payload.loop;
         loadChildList();
     }
@@ -337,7 +337,7 @@
                 current_mood = moods[i];
                 console.log(current_mood);
                 colorList = current_mood.payload.color_list.split(',');
-                document.getElementById("edit_link").href="/edit_mood/"+String(current_mood.id);
+                document.getElementById("edit_link").href="/edit_mood/"+String(current_mood.UUID);
                 document.getElementById("type_label").innerHTML=current_mood.payload.loop;
                 loadChildList();
                 break;

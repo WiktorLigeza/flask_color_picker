@@ -1,0 +1,61 @@
+{% extends 'layout.html' %}
+{% block body %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://kit.fontawesome.com/4e38e38ca0.js" crossorigin="anonymous"></script>
+<!--HEAD-->
+<h1>Controllers <small> For {{device.name}}</small></h1>
+
+  <style>
+    @media only screen and (max-device-width: 900px) {
+      th{
+        font-size: 150%;
+        font-weight: bold;
+      }
+      td{
+        font-size: 150%;
+        font-weight: bold;
+      }
+    }
+  </style>
+<!--CONTROLLERS TABLE-->
+<div>
+  <hr>
+      <a href="/dashboard" class="btn btn-default "><i class="fa fa-dashboard"></i></a>
+      <a class="btn btn-success pull-right" href="/add_controller/{{device.UUID}}"> Add</a></h3>
+    <div class="content">
+        <table class="table table-striped">
+      <tr>
+        <th></th>
+        <th>Name</th>
+        <th>Tag</th>
+        <th>  </th>
+        <th></th>
+        <th></th>
+      </tr>
+      {% for controller in controllersList %}
+        <tr>
+          <td></td>
+          <td>{{controller.name}}</td>
+          <td>{{controller.tag}}</td>
+          <td><a href="edit_controller/{{controller.UUID}}" class="btn btn-default pull-right"><i class="fa fa-edit"></i></a></td>
+          <td>
+            <form href="edit_controller/{{controller.UUID}}" method="post">
+              <input type="hidden" name="_method" value="DELETE">
+              <button type="submit" onclick="return confirm('Are you sure you want to delete This controller?')" class="btn btn-danger"><i class="fa fa-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+
+    </div>
+  <hr>
+</div>
+
+
+
+<div style="position: absolute; bottom: 0; right: 0; margin-right: 5%">
+  {% include 'includes/_messages.html' %}
+</div>
+
+{% endblock %}

@@ -1,6 +1,6 @@
+
 {% extends 'layout.html' %}
 {% block body %}
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <script src="https://kit.fontawesome.com/4e38e38ca0.js" crossorigin="anonymous"></script>
 <!--HEAD-->
@@ -20,11 +20,13 @@
   </style>
 <!--MOOD TABLE-->
 <div>
+
   <hr>
     <h3 type="button" class="collapsible">Moods <i class='fas fa-angle-down rotate' style='font-size:24px'></i> <a class="btn btn-success pull-right" href="/add_mood"> Add</a></h3>
     <div class="content">
         <table class="table table-striped">
       <tr>
+        <th></th>
         <th>Name</th>
         <th>Description</th>
         <th>  </th>
@@ -33,6 +35,7 @@
       </tr>
       {% for mood in moodList %}
         <tr>
+          <td></td>
           <td>{{mood.name}}</td>
           <td>{{mood.name}}</td>
           <td><a href="edit_mood/{{mood.UUID}}" class="btn btn-default pull-right"><i class="fa fa-edit"></i></a></td>
@@ -68,6 +71,7 @@
           <th></th>
           <th></th>
           <th></th>
+          <th></th>
 
         </tr>
         {% for device in devicelist %}
@@ -76,10 +80,10 @@
             <td>{{device.name}}</td>
             <td>{{device.tag}}</td>
             <td>{{device.registration_date}}</td>
-            <td style="text-align: center">Connecting...</td>
+            <td style="text-align: center"><i class="fas fa-spinner fa-spin"></i></td>
             <td><a href="color/{{device.UUID}}" class="btn btn-info pull-right">Color</a></td>
             <td><a href="share/{{device.UUID}}" class="btn btn-primary pull-right">Share</a></td>
-            <td><a href="edit_device/{{device.UUID}}" class="btn submit_btn_custom pull-right">Connect</a></td>
+            <td><a href="controllers/{{device.UUID}}" class="btn submit_btn_custom pull-right">Controllers</a></td>
             <td class="text-center"><a href="edit_device/{{device.UUID}}" class="btn btn-default "><i class="fa fa-edit"></i></a></td>
             <td>
               <form action="{{url_for('delete_device', id=device.UUID)}}" method="post">

@@ -139,9 +139,33 @@ class MoodSchema(ma.Schema):
 mood_schema = MoodSchema()
 moods_schema = MoodSchema(many=True)
 
+
+class Controllers(db.Model):
+    # __bind_key__ = 'two'
+    id = db.Column(db.Integer, primary_key=True)
+    UUID = db.Column(db.String(50))
+    name = db.Column(db.String(50))
+    tag = db.Column(db.String(100), unique=True)
+    device_id = db.Column(db.Integer)
+    has_relay = db.Column(db.Boolean)
+
+    def __init__(self, UUID, name, tag, owner_id, has_relay):
+        self.UUID = UUID
+        self.name = name
+        self.tag = tag
+        self.owner_id = owner_id
+        self.has_relay = has_relay
+
+
+# Device Schema
+class ControllersSchema(ma.Schema):
+    class Meta:
+        fields = ('id', 'UUID', 'name', 'tag', 'registration_date', 'device_id', "has_relay")
+
+
 from manager_package.user_management import *
 from manager_package.device_menagement import *
-from manager_package.mood_management import *
+from manager_package.controller_menagement import *
 
 
 class MoodJS:
@@ -156,7 +180,8 @@ def serialize_mood(query_list):
     mood_list_serializable = []
     for obj in query_list:
         mood_list_serializable.append(
-            {"id": obj.id, "name": obj.name, "payload": json.loads(obj.payload), "owner_id": obj.owner_id})
+            {"id": obj.id, "name": obj.name, "payload": json.loads(obj.payload),
+             "owner_id": obj.owner_id, "UUID": obj.UUID })
     return mood_list_serializable
 
 
@@ -164,7 +189,7 @@ def serialize_device(query_list):
     device_list_serializable = []
     for obj in query_list:
         device_list_serializable.append(
-            {"id": obj.id, "name": obj.name, "tag": obj.tag, "has_relay": obj.has_relay})
+            {"id": obj.id, "name": obj.name, "tag": obj.tag, "has_relay": obj.has_relay, "UUID": obj.UUID})
     return device_list_serializable
 
 
@@ -218,6 +243,31 @@ def dashboard():
     mood_list = db.session.query(Mood).filter_by(owner_id=owner.UUID).all()
 
     return render_template('dashboard.html', devicelist=device_list, moodList=mood_list, deviceListJS=device_list_js)
+
+
+@app.route("/controllers/<string:id>")
+@is_logged_in
+def controllers(id):
+    session['url'] = request.url
+    device = db.session.query(Device).filter_by(UUID=id).first()
+    controllers_list = db.session.query(Controllers).filter_by(device_id=id).all()
+    return render_template('controllers.html', controllersList=controllers_list, device=device)
+
+
+@app.route("/add_controller/<string:id>", methods=['GET', 'POST'])
+@is_logged_in
+def add_controller(id):
+    device = db.session.query(Device).filter_by(UUID=id).first()
+    form = ControllerForm(request.form)
+    if request.method == 'POST' and form.validate():
+        name = form.name.data
+        tag = form.tag.data
+        new_controller = Controllers(str(uuid.uuid4()), name, tag, device.UUID, has_relay=False)
+        db.session.add(new_controller)
+        db.session.commit()
+        flash('New controller successfully added', 'success')
+        return redirect(url_for('dashboard'))
+    return render_template('add_controller.html', form=form)
 
 
 @app.route("/edit_device/<string:id>", methods=['GET', 'POST'])
