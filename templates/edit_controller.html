@@ -1,6 +1,9 @@
 {% extends 'layout.html' %}
 
 {% block body %}
+
+
+
 <div class="registration_block" >
   <div class="registration_center">
   <h1>Edit device</h1>
@@ -12,8 +15,34 @@
         <div class="form-group">
           {{render_field(form.tag, class_="form-control")}}
         </div>
+        <!--  RADIO BUTTONS  -->
+        <div style="background: rgba(0,0,0,0.3); border-radius: 15px; color:cornsilk" >
+            <div style="margin: 5px">
+                <div class="row">
+                    <div style="float: left; width: 33.33%;">
+                        <input style="margin-left: 50%" type="radio" id="local" name="drone" value="local" checked>
+                        <label for="local">local</label>
+                    </div>
+                    <div style="float: left; width: 33.33%;">
+                        <input style="margin-left: 50%" type="radio" id="mqtt" name="drone" value="mqtt">
+                        <label for="mqtt">mqtt</label>
+                    </div>
+                    <div style="float: left; width: 33.33%;">
+                        <input style="margin-left: 50%" type="radio" id="serial" name="drone" value="serial">
+                        <label for="serial">serial</label>
+                    </div>
+                </div>
+            </div>
+        </div>
         <p style="margin-bottom: 20px" ><input type="submit" class="btn submit_btn_custom" value="Submit"></p>
       </form>
   </div>
  </div>
+
+<script>
+    var b = '{{connection}}'
+    console.log(b)
+    radiobtn = document.getElementById(b);
+    radiobtn.checked = true;
+</script>
 {% endblock %}

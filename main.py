@@ -145,22 +145,24 @@ class Controllers(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     UUID = db.Column(db.String(50))
     name = db.Column(db.String(50))
+    connection = db.Column(db.String(10))
     tag = db.Column(db.String(100), unique=True)
     device_id = db.Column(db.Integer)
     has_relay = db.Column(db.Boolean)
 
-    def __init__(self, UUID, name, tag, device_id, has_relay):
+    def __init__(self, UUID, name, tag, device_id, has_relay, connection):
         self.UUID = UUID
         self.name = name
         self.tag = tag
         self.device_id = device_id
         self.has_relay = has_relay
+        self.connection = connection
 
 
 # Device Schema
 class ControllersSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'UUID', 'name', 'tag', 'device_id', "has_relay")
+        fields = ('id', 'UUID', 'name', 'tag', 'device_id', "has_relay", "connection")
 
 
 from manager_package.user_management import *
@@ -204,7 +206,8 @@ def serialize_controller(query_list):
     controller_list_serializable = []
     for obj in query_list:
         controller_list_serializable.append(
-            {"id": obj.id, "name": obj.name, "tag": obj.tag, "has_relay": obj.has_relay, "UUID": obj.UUID})
+            {"id": obj.id, "name": obj.name, "tag": obj.tag,
+             "has_relay": obj.has_relay, "UUID": obj.UUID, "connection": obj.connection})
     return controller_list_serializable
 
 
@@ -277,7 +280,8 @@ def add_controller(id):
     if request.method == 'POST' and form.validate():
         name = form.name.data
         tag = form.tag.data
-        new_controller = Controllers(str(uuid.uuid4()), name, tag, device.UUID, has_relay=False)
+        connection = request.form.get('drone')
+        new_controller = Controllers(str(uuid.uuid4()), name, tag, device.UUID, has_relay=False, connection=connection)
         db.session.add(new_controller)
         db.session.commit()
         flash('New controller successfully added', 'success')
@@ -319,11 +323,12 @@ def edit_controller(id):
     if request.method == 'POST' and form.validate():
         controller.name = request.form['name']
         controller.tag = request.form['tag']
+        controller.connection = request.form.get('drone')
         db.session.commit()
         flash('Controller successfully updated', 'success')
 
         return redirect(f"/controllers/{device_id}")
-    return render_template('edit_controller.html', form=form, controller_id=id)
+    return render_template('edit_controller.html', form=form, controller_id=id, connection=controller.connection)
 
 
 @app.route("/edit_device/edit_connection_key/<string:id>", methods=['GET', 'POST'])
@@ -607,7 +612,7 @@ if __name__ == '__main__':
     app.secret_key = secret_key
     app.run(debug=True)
 
-# TODO: id -> UUID standard, tag->UUID 6 digits
+
 
 
 # arr_x = []
@@ -639,3 +644,4 @@ if __name__ == '__main__':
 # def chart():
 #     fig = px.line(x=arr_x, y=arr_y)
 #     return html.Div([dcc.Graph(figure=fig)])
+

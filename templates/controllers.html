@@ -28,7 +28,7 @@
         <th></th>
         <th>Name</th>
         <th>Tag</th>
-        <th>  </th>
+        <th>Connection</th>
         <th></th>
         <th></th>
         <th></th>
@@ -38,6 +38,7 @@
           <td></td>
           <td>{{controller.name}}</td>
           <td>{{controller.tag}}</td>
+          <td>{{controller.connection}}</td>
           <td><a href="edit_controller/{{controller.UUID}}" class="btn btn-default pull-right"><i class="fa fa-edit"></i></a></td>
           <td>
             <form action="{{url_for('delete_controller', id=controller.UUID)}}" method="post">

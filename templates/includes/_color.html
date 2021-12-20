@@ -151,7 +151,7 @@
             const payload = {color: colorChange.value, brightness: brightness, speed: speed, loop:loop}
             const data_to_send = { head: 'set', user: '{{session.username}}',
                 TAG: '{{ device.tag }}', type: "single", payload: payload,
-                ctrl_TAG: current_controller.tag};
+                ctrl_TAG: current_controller.tag, connection: current_controller.connection};
             const data_in_json = JSON.stringify(data_to_send);
             socket.send(data_in_json);
         }
@@ -167,7 +167,8 @@
             const data_to_send = {
                 head: 'set', user: '{{session.username}}',
                 TAG: '{{ device.tag }}', type: "mood",
-                payload: current_mood.payload, ctrl_TAG: current_controller.tag
+                payload: current_mood.payload, ctrl_TAG: current_controller.tag,
+                connection: current_controller.connection
             };
             const data_in_json = JSON.stringify(data_to_send);
             socket.send(data_in_json);
