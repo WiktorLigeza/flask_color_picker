@@ -149,18 +149,18 @@ class Controllers(db.Model):
     device_id = db.Column(db.Integer)
     has_relay = db.Column(db.Boolean)
 
-    def __init__(self, UUID, name, tag, owner_id, has_relay):
+    def __init__(self, UUID, name, tag, device_id, has_relay):
         self.UUID = UUID
         self.name = name
         self.tag = tag
-        self.owner_id = owner_id
+        self.device_id = device_id
         self.has_relay = has_relay
 
 
 # Device Schema
 class ControllersSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'UUID', 'name', 'tag', 'registration_date', 'device_id', "has_relay")
+        fields = ('id', 'UUID', 'name', 'tag', 'device_id', "has_relay")
 
 
 from manager_package.user_management import *
@@ -176,12 +176,19 @@ class MoodJS:
         self.owner_id = owner_id
 
 
+class ControllerS:
+    def __init__(self, id, name, tag):
+        self.id = id
+        self.name = name
+        self.tag = tag
+
+
 def serialize_mood(query_list):
     mood_list_serializable = []
     for obj in query_list:
         mood_list_serializable.append(
             {"id": obj.id, "name": obj.name, "payload": json.loads(obj.payload),
-             "owner_id": obj.owner_id, "UUID": obj.UUID })
+             "owner_id": obj.owner_id, "UUID": obj.UUID})
     return mood_list_serializable
 
 
@@ -191,6 +198,14 @@ def serialize_device(query_list):
         device_list_serializable.append(
             {"id": obj.id, "name": obj.name, "tag": obj.tag, "has_relay": obj.has_relay, "UUID": obj.UUID})
     return device_list_serializable
+
+
+def serialize_controller(query_list):
+    controller_list_serializable = []
+    for obj in query_list:
+        controller_list_serializable.append(
+            {"id": obj.id, "name": obj.name, "tag": obj.tag, "has_relay": obj.has_relay, "UUID": obj.UUID})
+    return controller_list_serializable
 
 
 ################################################ ROUTES
@@ -266,7 +281,7 @@ def add_controller(id):
         db.session.add(new_controller)
         db.session.commit()
         flash('New controller successfully added', 'success')
-        return redirect(url_for('dashboard'))
+        return redirect(f"/controllers/{id}")
     return render_template('add_controller.html', form=form)
 
 
@@ -278,7 +293,6 @@ def edit_device(id):
     form.name.data = device.name
     form.tag.data = device.tag
     old_tag = device.tag
-    device_id = id
 
     if request.method == 'POST' and form.validate():
         device.name = request.form['name']
@@ -290,7 +304,26 @@ def edit_device(id):
         asyncio.set_event_loop(loop)
 
         return redirect(url_for('dashboard'))
-    return render_template('edit_device.html', form=form, device_id=device_id)
+    return render_template('edit_device.html', form=form, device_id=id)
+
+
+@app.route("/controllers/edit_controller/<string:id>", methods=['GET', 'POST'])
+@is_logged_in
+def edit_controller(id):
+    controller = db.session.query(Controllers).filter_by(UUID=id).first()
+    form = ControllerFormUpdate(request.form)
+    form.name.data = controller.name
+    form.tag.data = controller.tag
+    device_id = session["url"].split("/")[-1]
+
+    if request.method == 'POST' and form.validate():
+        controller.name = request.form['name']
+        controller.tag = request.form['tag']
+        db.session.commit()
+        flash('Controller successfully updated', 'success')
+
+        return redirect(f"/controllers/{device_id}")
+    return render_template('edit_controller.html', form=form, controller_id=id)
 
 
 @app.route("/edit_device/edit_connection_key/<string:id>", methods=['GET', 'POST'])
@@ -349,6 +382,18 @@ def delete_mood(id):
     return redirect(url_for('dashboard'))
 
 
+@app.route("/controllers/delete_controller/<string:id>", methods=['POST'])
+@is_logged_in
+def delete_controller(id):
+    controller = db.session.query(Controllers).filter_by(UUID=id).first()
+    db.session.delete(controller)
+    db.session.commit()
+    device_id = session["url"].split("/")[-1]
+
+    flash('Controller successfully deleted', 'success')
+    return redirect(f"/controllers/{device_id}")
+
+
 @app.route("/edit_mood/<string:id>", methods=['GET', 'POST'])
 @is_logged_in
 def edit_mood(id):
@@ -381,7 +426,10 @@ def color(id):
     owner = db.session.query(User).filter_by(username=user_name).first()
     device = db.session.query(Device).filter_by(UUID=id).first()
     mood_list = db.session.query(Mood).filter_by(owner_id=owner.UUID).all()
+    controller_list = db.session.query(Controllers).filter_by(device_id=device.UUID).all()
+
     mood_js = serialize_mood(mood_list)
+    controller_js = serialize_controller(controller_list)
     session['url'] = request.url
 
     if request.method == "POST":
@@ -391,9 +439,11 @@ def color(id):
         data = {'hexa': backend_value}
         print(backend_value)
 
-        return render_template('color.html', data=data, device=device, moodList=mood_list, moodListJS=mood_js)
+        return render_template('color.html', data=data, device=device, moodList=mood_list, moodListJS=mood_js,
+                               controllerList=controller_list, controllerListJS=controller_js)
     data = {'hexa': "#911abc"}
-    return render_template('color.html', data=data, device=device, moodList=mood_list, moodListJS=mood_js)
+    return render_template('color.html', data=data, device=device, moodList=mood_list, moodListJS=mood_js,
+                           controllerList=controller_list, controllerListJS=controller_js)
 
 
 @app.route("/add_device", methods=['GET', 'POST'])

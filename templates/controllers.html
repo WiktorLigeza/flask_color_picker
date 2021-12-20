@@ -31,6 +31,7 @@
         <th>  </th>
         <th></th>
         <th></th>
+        <th></th>
       </tr>
       {% for controller in controllersList %}
         <tr>
@@ -39,11 +40,13 @@
           <td>{{controller.tag}}</td>
           <td><a href="edit_controller/{{controller.UUID}}" class="btn btn-default pull-right"><i class="fa fa-edit"></i></a></td>
           <td>
-            <form href="edit_controller/{{controller.UUID}}" method="post">
+            <form action="{{url_for('delete_controller', id=controller.UUID)}}" method="post">
               <input type="hidden" name="_method" value="DELETE">
               <button type="submit" onclick="return confirm('Are you sure you want to delete This controller?')" class="btn btn-danger"><i class="fa fa-trash"></i></button>
             </form>
           </td>
+          <td></td>
+          <td></td>
         </tr>
       {% endfor %}
     </table>

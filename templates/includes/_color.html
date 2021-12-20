@@ -13,7 +13,7 @@
         }
         #singleColorControls{
             background: rgba(0,0,0,0.3);
-            margin: auto;
+            margin: 5% auto auto;
             width: 60%;
             height: 55%;
             padding:20px;
@@ -25,8 +25,21 @@
             height: 55%;
             padding:20px;
         }
+        #controllerControls{
+            background: rgba(0,0,0,0.3);
+            margin: auto;
+            width: 60%;
+            height: 55%;
+            padding:20px;
+        }
         @media only screen and (max-device-width: 900px) {
             #singleColorControls{
+                background: rgba(0,0,0,0.3);
+                margin: 5% auto auto;
+                width: 110%;
+                height: 100%;
+            }
+            #controllerControls{
                 background: rgba(0,0,0,0.3);
                 margin: auto;
                 width: 110%;
@@ -73,13 +86,13 @@
                  margin-left: 15px;
              }
         }
-
     </style>
     <script>
         var colorChange;
         var color = JSON.parse('{{ data | tojson | safe}}');
         var initialColor = color.hexa
         var moods = JSON.parse('{{ moodListJS | tojson | safe}}');
+        var controllers = JSON.parse('{{ controllerListJS | tojson | safe}}');
         var i = 0;
 
 
@@ -137,7 +150,8 @@
             const loop = document.querySelector('input[name="drone"]:checked').value;
             const payload = {color: colorChange.value, brightness: brightness, speed: speed, loop:loop}
             const data_to_send = { head: 'set', user: '{{session.username}}',
-                TAG: '{{ device.tag }}', type: "single", payload: payload };
+                TAG: '{{ device.tag }}', type: "single", payload: payload,
+                ctrl_TAG: current_controller.tag};
             const data_in_json = JSON.stringify(data_to_send);
             socket.send(data_in_json);
         }
@@ -152,7 +166,8 @@
         try {
             const data_to_send = {
                 head: 'set', user: '{{session.username}}',
-                TAG: '{{ device.tag }}', type: "mood", payload: current_mood.payload
+                TAG: '{{ device.tag }}', type: "mood",
+                payload: current_mood.payload, ctrl_TAG: current_controller.tag
             };
             const data_in_json = JSON.stringify(data_to_send);
             socket.send(data_in_json);
@@ -173,6 +188,21 @@
 </head>
 
 <body>
+    <!-- CONTROLLER DIV-->
+    <div id="controllerControls">
+        <div>
+            <!--  HEADER -->
+            <h1 style="margin-top: 0px;filter: invert(100%);display: inline;"> Select Controller</h1>
+            <div style="padding-right: 80px; padding-top: 10px; float:right;">
+                  <select name="controllers" id="controllers" style="transform: scale(2); width: 160px;
+                     margin: auto; color: #333333;filter: invert(100%); background-color: rgba(255,255,255,0.3);" class="fa-edit">
+                    {% for controller in controllerList %}
+                    <option value={{controller.id}}>{{controller.name}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
     <!-- SINGLE COLOR DIV-->
     <div id="singleColorControls">
         <div>
@@ -277,6 +307,9 @@
 
     var current_mood = moods[0];
     console.log(current_mood);
+    var current_controller = controllers[0];
+    console.log(current_controller);
+
     const element = document.getElementById("dot_list");
     var colorList;
 
@@ -315,7 +348,12 @@
     document.addEventListener('DOMContentLoaded', () => {
         document
           .getElementById('moods')
-          .addEventListener('input', handleSelect);
+          .addEventListener('input', handleSelectMood);
+      });
+    document.addEventListener('DOMContentLoaded', () => {
+        document
+          .getElementById('controllers')
+          .addEventListener('input', handleSelectControllers);
       });
 
     window.onload = function() {speed_slider();brightness_slider()};
@@ -328,7 +366,7 @@
         document.getElementById("brightness_label").innerHTML = "Amplitude: "+b;
     }
 
-    function handleSelect(ev) {
+    function handleSelectMood(ev) {
         let select = ev.target;
         const moods_id = select.value
         console.log(moods_id)
@@ -341,6 +379,18 @@
                 document.getElementById("type_label").innerHTML=current_mood.payload.loop;
                 loadChildList();
                 break;
+             }
+         }
+      }
+
+    function handleSelectControllers(ev) {
+        let select = ev.target;
+        const controllers_id = select.value
+        console.log(controllers_id)
+        for (var i = 0; i < controllers.length; i++){
+             if(controllers[i].id == controllers_id){
+                current_controller= controllers[i];
+                console.log(current_controller);
              }
          }
       }

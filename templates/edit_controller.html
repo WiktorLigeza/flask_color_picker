@@ -1,0 +1,19 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="registration_block" >
+  <div class="registration_center">
+  <h1>Edit device</h1>
+  {% from "includes/_formhelpers.html" import render_field %}
+      <form method="POST" action="">
+        <div class="form-group">
+          {{render_field(form.name, class_="form-control")}}
+        </div>
+        <div class="form-group">
+          {{render_field(form.tag, class_="form-control")}}
+        </div>
+        <p style="margin-bottom: 20px" ><input type="submit" class="btn submit_btn_custom" value="Submit"></p>
+      </form>
+  </div>
+ </div>
+{% endblock %}
