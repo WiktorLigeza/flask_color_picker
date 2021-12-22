@@ -222,31 +222,37 @@
 
 
   const sendReset = (tag) => {
-      try{
-          const data_to_send = { head: 'set', user: '{{session.username}}',
-              TAG: tag, type: "restart"};
-          const data_in_json = JSON.stringify(data_to_send);
-          yyy.send(data_in_json);
-          console.log("restarting: ", tag)
-      }
-      catch{
-          yyy = new WebSocket('wss://hal9000-color-picker-websockserver.glitch.me');
-          console.log("reconnecting")
-      }
+     if(confirm('Are you sure you want to reset this Device?')) {
+       try {
+         const data_to_send = {
+           head: 'set', user: '{{session.username}}',
+           TAG: tag, type: "restart"
+         };
+         const data_in_json = JSON.stringify(data_to_send);
+         yyy.send(data_in_json);
+         console.log("restarting: ", tag)
+       } catch {
+         yyy = new WebSocket('wss://hal9000-color-picker-websockserver.glitch.me');
+         console.log("reconnecting")
+       }
+     }
   }
 
   const sendReboot = (tag) => {
-      try{
-          const data_to_send = { head: 'set', user: '{{session.username}}',
-              TAG: tag, type: "reboot"};
-          const data_in_json = JSON.stringify(data_to_send);
-          yyy.send(data_in_json);
-          console.log("rebooting: ", tag)
+    if(confirm('Are you sure you want to reboot this Device?')) {
+      try {
+        const data_to_send = {
+          head: 'set', user: '{{session.username}}',
+          TAG: tag, type: "reboot"
+        };
+        const data_in_json = JSON.stringify(data_to_send);
+        yyy.send(data_in_json);
+        console.log("rebooting: ", tag)
+      } catch {
+        yyy = new WebSocket('wss://hal9000-color-picker-websockserver.glitch.me');
+        console.log("reconnecting")
       }
-      catch{
-          yyy = new WebSocket('wss://hal9000-color-picker-websockserver.glitch.me');
-          console.log("reconnecting")
-      }
+    }
   }
 
 </script>
