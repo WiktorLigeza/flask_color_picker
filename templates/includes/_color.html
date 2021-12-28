@@ -179,6 +179,24 @@
         }
     }
 
+    const sendOff = () => {
+        try{
+            const speed = "0";
+            const brightness = "0";
+            const loop = "steady";
+            const payload = {color: "#000000", brightness: brightness, speed: speed, loop:loop}
+            const data_to_send = { head: 'set', user: '{{session.username}}',
+                TAG: '{{ device.tag }}', type: "single", payload: payload,
+                ctrl_TAG: current_controller.tag, connection: current_controller.connection};
+            const data_in_json = JSON.stringify(data_to_send);
+            socket.send(data_in_json);
+        }
+        catch{
+            socket = new WebSocket('wss://hal9000-color-picker-websockserver.glitch.me');
+            console.log("reconnecting")
+        }
+    }
+
     setInterval(function(){
         const wake = { head: 'wake up'};
         console.log("wake up");
@@ -194,6 +212,7 @@
         <div>
             <!--  HEADER -->
             <h1 style="margin-top: 0px;filter: invert(100%);display: inline;"> Select Controller</h1>
+            <a style="margin-left: 30px; padding-top: 10px; float:right;  " id="turn-off" onclick="sendOff()"><i style=" transform: scale(2);" class="fa fa-power-off"></i></a>
             <div style="padding-right: 80px; padding-top: 10px; float:right;">
                   <select name="controllers" id="controllers" style="transform: scale(2); width: 160px;
                      margin: auto; color: #333333;filter: invert(100%); background-color: rgba(255,255,255,0.3);" class="fa-edit">
@@ -242,7 +261,7 @@
                 <input style="margin-bottom: 5px;" name="colorChange" type="color" value=colorChange.value id="colorChange">
 
                 <!--  SUBMIT BUTTON  -->
-                <p style="margin-left: 5%;  float: right;" ><input id="sngl_btn" type="submit" onclick="sendSingle()" class="btn submit_btn_custom" value="Submit"></p>
+                <p style="margin-left: 5%;  float: right;" ><input id="sngl_btn" type="submit" onclick="sendSingle()" class="btn submit_btn_custom"  value="Submit"></p>
 
                 <!--  HIDDEN COLOR LIST  -->
                 <input style="margin-bottom: 5px;" type="hidden" name="colorList" id="colorList">
