@@ -20,7 +20,7 @@
         }
         #moodControls{
             background: rgba(0,0,0,0.3);
-            margin: 10% auto auto;
+            margin: 5% auto auto;
             width: 60%;
             height: 55%;
             padding:20px;
@@ -28,6 +28,13 @@
         #controllerControls{
             background: rgba(0,0,0,0.3);
             margin: auto;
+            width: 60%;
+            height: 55%;
+            padding:20px;
+        }
+        #whiteControls{
+            background: rgba(0,0,0,0.3);
+            margin: 5% auto auto;
             width: 60%;
             height: 55%;
             padding:20px;
@@ -197,6 +204,22 @@
         }
     }
 
+    const sendWhite = (b) => {
+        try {
+            const data_to_send = {
+                head: 'set', user: '{{session.username}}',
+                TAG: '{{ device.tag }}', type: "white", brightness: b,
+                ctrl_TAG: current_controller.tag, connection: current_controller.connection
+            };
+            const data_in_json = JSON.stringify(data_to_send);
+            socket.send(data_in_json);
+            console.log(data_in_json);
+        } catch {
+            socket = new WebSocket('wss://hal9000-color-picker-websockserver.glitch.me');
+            console.log("reconnecting")
+        }
+    }
+
     setInterval(function(){
         const wake = { head: 'wake up'};
         console.log("wake up");
@@ -265,6 +288,19 @@
 
                 <!--  HIDDEN COLOR LIST  -->
                 <input style="margin-bottom: 5px;" type="hidden" name="colorList" id="colorList">
+            </div>
+        </div>
+    </div>
+        <!-- SINGLE COLOR DIV-->
+    <div id="whiteControls">
+        <div>
+            <!--  HEADER -->
+            <h1 style="margin-top: 0px;filter: invert(100%);"> W Brightness</h1>
+            <div>
+                <!--  SPEED SLIDER  -->
+                <p style="margin-bottom: 0px; color: cornsilk; " id="white_label" > Change Speed: </p>
+                <input  style="margin-bottom: 5px;" type="range" min="1" max="100" value="50" class="slider" id="white" oninput="white_slider()" name="speed">
+
             </div>
         </div>
     </div>
@@ -385,6 +421,18 @@
         const b = document.getElementById("brightness").value;
         document.getElementById("brightness_label").innerHTML = "Amplitude: "+b;
     }
+    window.onload = function() {white_slider();brightness_slider()};
+    let white_iter = 0;
+    function white_slider()
+    {
+        const b = document.getElementById("white").value;
+        if (white_iter > 0){
+            sendWhite(b);
+        }
+        white_iter += 1;
+        document.getElementById("white_label").innerHTML = "Brightness: "+b;
+    }
+
 
     function handleSelectMood(ev) {
         let select = ev.target;
